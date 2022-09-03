@@ -1,4 +1,4 @@
-package javaraycaster;
+package javaraytracer;
 
 import java.awt.*;
 

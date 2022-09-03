@@ -1,10 +1,10 @@
-package javaraycaster;
+package javaraytracer;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferStrategy;
 
-public class RaycasterCanvas extends Canvas implements Runnable {
+public class RaytracerCanvas extends Canvas implements Runnable {
 
     private final CanvasRenderer renderer;
 
@@ -12,15 +12,15 @@ public class RaycasterCanvas extends Canvas implements Runnable {
 
     private boolean isRunning = false;
 
-    public RaycasterCanvas(CanvasRenderer renderer, int width, int height) {
+    public RaytracerCanvas(CanvasRenderer renderer, int width, int height) {
 
         this.renderer = renderer;
 
         JFrame frame = new JFrame();
+        this.setSize(width, height);
         frame.add(this);
         frame.pack();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(width, height);
         frame.setLocationRelativeTo(null);
         frame.setResizable(false);
         frame.setVisible(true);
