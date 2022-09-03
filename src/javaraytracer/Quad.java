@@ -1,5 +1,7 @@
 package javaraytracer;
 
+import java.awt.*;
+
 public class Quad extends Object3D {
     private final Vector3D p1;
     private final Vector3D p2;
@@ -11,5 +13,15 @@ public class Quad extends Object3D {
         this.p2 = p2;
         this.p3 = p3;
         this.p4 = p4;
+    }
+
+    @Override
+    void draw(Graphics g, Projector p) {
+
+    }
+
+    @Override
+    void update(double dt) {
+
     }
 }

@@ -1,20 +1,21 @@
 package javaraytracer;
 
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
-public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseListener {
+public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseListener, KeyListener {
 
-    public static final int WIDTH = 512;
-    public static final int HEIGHT = 512;
+    public static final int WIDTH = 960;
+    public static final int HEIGHT = 540;
 
     public static final int BRUSH_SIZE = 20;
 
@@ -36,9 +37,10 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
     private int xPos;
     private int yPos;
 
-    private final Projector projector = new Projector(WIDTH, HEIGHT, 300);
-    private final Cube cube = new Cube(new Vector3D(0, 50, 0), 20);
-    private double cubeAngle = 0;
+    // Pressed keys
+    private final Set<Integer> keysPressed = new HashSet<>();
+
+    private final Projector projector = new Projector(WIDTH, HEIGHT, 600);
 
     public Raytracer() {
         img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
@@ -57,19 +59,36 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         return List.of(
                 new Sphere(new Vector3D(0, 50, 0), 10),
                 new Quad(new Vector3D(-100, 0, -100), new Vector3D(100, 0, -100),
-                        new Vector3D(-100, 200, -100), new Vector3D(100, 200, -100))
+                        new Vector3D(-100, 200, -100), new Vector3D(100, 200, -100)),
+                new Cube(new Vector3D(-100, 200, -50), 20, 1.0 / 1000),
+                new Cube(new Vector3D(-50, 200, -50), 20, 1.0 / 1000),
+                new Cube(new Vector3D(0, 200, -50), 20, 1.0 / 1000),
+                new Cube(new Vector3D(50, 200, -50), 20, 1.0 / 1000),
+                new Cube(new Vector3D(100, 200, -50), 20, 1.0 / 1000),
+                new Cube(new Vector3D(-100, 200, 0), 20, 1.0 / 1000),
+                new Cube(new Vector3D(-50, 200, 0), 20, 1.0 / 1000),
+                new Cube(new Vector3D(0, 200, 0), 20, 1.0 / 1000),
+                new Cube(new Vector3D(50, 200, 0), 20, 1.0 / 1000),
+                new Cube(new Vector3D(100, 200, 0), 20, 1.0 / 1000),
+                new Cube(new Vector3D(-50, 200, 50), 20, 1.0 / 1000),
+                new Cube(new Vector3D(-100, 200, 50), 20, 1.0 / 1000),
+                new Cube(new Vector3D(0, 200, 50), 20, 1.0 / 1000),
+                new Cube(new Vector3D(50, 200, 50), 20, 1.0 / 1000),
+                new Cube(new Vector3D(100, 200, 50), 20, 1.0 / 1000)
         );
     }
 
     private int frameCount = 0;
     private int fps = 0;
-
-    private long lastTime = System.currentTimeMillis();
-
-    double multiplier = 64;
+    private long lastFpsTime = System.currentTimeMillis();
+    private long lastFrameTime = System.nanoTime();
 
     @Override
     public void render(Graphics g) {
+
+        long curFrameTime = System.nanoTime();
+        double dt = ((double)(curFrameTime - lastFrameTime)) / 1e6; // Convert nanoseconds to milliseconds
+        lastFrameTime = curFrameTime;
 
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, WIDTH, HEIGHT);
@@ -92,25 +111,40 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 //        }
 //        g.drawImage(img, 0, 0, WIDTH, HEIGHT, null);
 
-        cube.draw(g, projector);
-//        cube.setPos(cube.getPos().add(new Vector3D(0, 0.001, 0)));
-        cubeAngle += 0.0001;
-        cube.setAngle(cubeAngle);
+        updateKeys(dt);
+
+
+        for (Object3D object : objects) {
+            object.draw(g, projector);
+            object.update(dt);
+        }
 
 
         frameCount++;
         long time = System.currentTimeMillis();
-        if (time - lastTime > 1000) {
+        if (time - lastFpsTime > 1000) {
             System.out.println("FPS: " + frameCount);
             fps = frameCount;
             frameCount = 0;
-            lastTime = time;
+            lastFpsTime = time;
         }
-        String fpsString = "FPS: " + fps;
         g.setColor(Color.WHITE);
-        g.drawString(fpsString, WIDTH - 100, 40);
+        g.drawString("FPS: " + fps, WIDTH - 100, 40);
+        g.drawString("Plane:" + projector.getProjectionPlane(), WIDTH - 100, 60);
 
         g.dispose();
+    }
+
+    private void updateKeys(double dt) {
+//        if (!keysPressed.isEmpty()) {
+//            System.out.println("Keys pressed: " + keysPressed);
+//        }
+        if (keysPressed.contains(KeyEvent.VK_UP)) {
+            projector.setProjectionPlane(projector.getProjectionPlane() + 0.01);
+        }
+        if (keysPressed.contains(KeyEvent.VK_DOWN)) {
+            projector.setProjectionPlane(projector.getProjectionPlane() - 0.01);
+        }
     }
 
     @Override
@@ -151,6 +185,22 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
     public void mouseExited(MouseEvent e) {
     }
 
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        keysPressed.add(e.getKeyCode());
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        keysPressed.remove(e.getKeyCode());
+    }
+
+
     public static void main(String[] args) {
         Raytracer raytracer = new Raytracer();
 
@@ -158,6 +208,7 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
         main.addMouseMotionListener(raytracer);
         main.addMouseListener(raytracer);
+        main.addKeyListener(raytracer);
 
         main.start();
     }
