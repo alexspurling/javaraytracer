@@ -51,7 +51,7 @@ public class RaytracerCanvas extends Canvas implements Runnable {
         thread.start();
     }
 
-    private void stop() {
+    public void stop() {
         if (!isRunning)
             return;
         isRunning = false;

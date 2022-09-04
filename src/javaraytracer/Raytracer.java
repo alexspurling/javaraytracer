@@ -1,9 +1,12 @@
 package javaraytracer;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -12,7 +15,7 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
     public static final int WIDTH = 640;
     public static final int WIDTH_2 = WIDTH / 2;
-    public static final int HEIGHT = 512;
+    public static final int HEIGHT = 480;
     public static final int HEIGHT_2 = HEIGHT / 2;
 
     private final BufferedImage img;
@@ -80,10 +83,14 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
     @Override
     public void render(Graphics g) {
-
         long curFrameTime = System.nanoTime();
         double dt = ((double)(curFrameTime - lastFrameTime)) / 1e6; // Convert nanoseconds to milliseconds
         lastFrameTime = curFrameTime;
+        render(g, dt);
+    }
+
+    @Override
+    public void render(Graphics g, double dt) {
 
         var g2 = img.getGraphics();
         g2.setColor(Color.BLACK);
@@ -197,7 +204,6 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
             if (object != litObject) {
                 Intersection intersection = object.getIntersection(toLight, litPoint.point());
                 if (intersection != null) {
-                    Intersection intersection2 = object.getIntersection(toLight, litPoint.point());
                     return 0;
                 }
             }
@@ -312,7 +318,7 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
     }
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Raytracer raytracer = new Raytracer();
 
         RaytracerCanvas main = new RaytracerCanvas(raytracer, WIDTH, HEIGHT);
@@ -321,7 +327,26 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         main.addMouseListener(raytracer);
         main.addKeyListener(raytracer);
 
-        main.start();
+        if (args.length > 0 && args[0].equals("record")) {
+
+            double frameTime = (double) 1000 / 25; // 1 25th of a second
+            int frameCount = (int) (1000 * 2 * Math.PI / frameTime) + 1;
+            for (int frame = 0; frame < frameCount; frame++) {
+                BufferedImage myImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2 = myImage.createGraphics();
+
+                String fileName = String.format("frame%04d.png", frame);
+                System.out.println("Rendering " + fileName);
+                raytracer.render(g2, frameTime);
+
+                File outputfile = new File("output3", fileName);
+                ImageIO.write(myImage, "png", outputfile);
+            }
+            main.stop();
+            System.out.println("Done");
+        } else {
+            main.start();
+        }
     }
 
 }
