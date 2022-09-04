@@ -6,11 +6,12 @@ public class Quad extends Object3D {
 
     private static final double PI_2 = Math.PI / 2;
 
-    private final Vector3D p1;
-    private final Vector3D p2;
-    private final Vector3D p3;
-    private final Vector3D p4;
+    public final Vector3D p1;
+    public final Vector3D p2;
+    public final Vector3D p3;
+    public final Vector3D p4;
     private final Vector3D normal;
+    private final Color colour;
 
     public double p2dot;
     public double p3dot;
@@ -22,8 +23,9 @@ public class Quad extends Object3D {
     public double vP1;
     public double vP4;
 
-    public Quad(String name, Vector3D p1, Vector3D p2, Vector3D p3, Vector3D p4) {
+    public Quad(String name, Color colour, Vector3D p1, Vector3D p2, Vector3D p3, Vector3D p4) {
         super(name);
+        this.colour = colour;
         this.p1 = p1;
         this.p2 = p2;
         this.p3 = p3;
@@ -101,6 +103,6 @@ public class Quad extends Object3D {
 
     @Override
     Color getColour() {
-        return new Color(0x139FB4);
+        return colour;
     }
 }

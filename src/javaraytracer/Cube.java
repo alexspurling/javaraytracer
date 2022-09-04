@@ -1,93 +1,113 @@
 package javaraytracer;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Cube extends Object3D {
 
-    private Vector3D pos;
-    private double cubeSize_2;
     private final double angularVelocity;
-    private double angle = 0;
-    private double totalTime = 0;
+    private final Color colour;
 
+    private double cubeSize_2;
+    // These base shapes don't change
+    private final List<Quad> baseFaces;
+
+    // Mutable state
+    private Vector3D pos;
+    private double angle = 0;
+
+    // These faces change based on the current position and angle
     private List<Quad> faces;
 
-
-    public Cube(Vector3D pos, double size, double angularVelocity) {
+    public Cube(Color colour, Vector3D pos, double size, double angularVelocity) {
         super("Cube");
 
+        this.colour = colour;
         this.pos = pos;
         this.cubeSize_2 = size / 2;
         this.angularVelocity = angularVelocity;
 
-        // front
-        this.faces = generateFaces(pos);
-    }
-
-    private List<Quad> generateFaces(Vector3D pos) {
-        var face1 = new Quad(
-                "Front face",
-                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
-                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
-                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2),
-                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2)
-                );
+        var front = new Quad(
+                "Front face", colour,
+                new Vector3D(-cubeSize_2, -cubeSize_2, -cubeSize_2),
+                new Vector3D(+cubeSize_2, -cubeSize_2, -cubeSize_2),
+                new Vector3D(+cubeSize_2, -cubeSize_2, +cubeSize_2),
+                new Vector3D(-cubeSize_2, -cubeSize_2, +cubeSize_2)
+        );
 
         // left
-        var face2 = new Quad(
-                "Left face",
-                new Vector3D(pos.x() - cubeSize_2, pos.y() + cubeSize_2, pos.z() - cubeSize_2),
-                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
-                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2),
-                new Vector3D(pos.x() - cubeSize_2, pos.y() + cubeSize_2, pos.z() + cubeSize_2)
-                );
+        var left = new Quad(
+                "Left face", colour,
+                new Vector3D(-cubeSize_2, +cubeSize_2, -cubeSize_2),
+                new Vector3D(-cubeSize_2, -cubeSize_2, -cubeSize_2),
+                new Vector3D(-cubeSize_2, -cubeSize_2, +cubeSize_2),
+                new Vector3D(-cubeSize_2, +cubeSize_2, +cubeSize_2)
+        );
 
         // back
-        var face3 = new Quad(
-                "Back face",
-                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
-                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
-                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2),
-                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2)
-                );
+        var back = new Quad(
+                "Back face", colour,
+                new Vector3D(+cubeSize_2, +cubeSize_2, -cubeSize_2),
+                new Vector3D(-cubeSize_2, +cubeSize_2, -cubeSize_2),
+                new Vector3D(-cubeSize_2, +cubeSize_2, +cubeSize_2),
+                new Vector3D(+cubeSize_2, +cubeSize_2, +cubeSize_2)
+        );
 
         // right
-        var face4 = new Quad(
-                "Right face",
-                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
-                new Vector3D(pos.x() + cubeSize_2, pos.y() + cubeSize_2, pos.z() - cubeSize_2),
-                new Vector3D(pos.x() + cubeSize_2, pos.y() + cubeSize_2, pos.z() + cubeSize_2),
-                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2)
-                );
+        var right = new Quad(
+                "Right face", colour,
+                new Vector3D(+cubeSize_2, -cubeSize_2, -cubeSize_2),
+                new Vector3D(+cubeSize_2, +cubeSize_2, -cubeSize_2),
+                new Vector3D(+cubeSize_2, +cubeSize_2, +cubeSize_2),
+                new Vector3D(+cubeSize_2, -cubeSize_2, +cubeSize_2)
+        );
 
         // top
-        var face5 = new Quad(
-                "Top face",
-                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
-                new Vector3D(pos.x() - cubeSize_2, pos.y() + cubeSize_2, pos.z() - cubeSize_2),
-                new Vector3D(pos.x() + cubeSize_2, pos.y() + cubeSize_2, pos.z() - cubeSize_2),
-                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2)
-                );
+        var top = new Quad(
+                "Top face", colour,
+                new Vector3D(-cubeSize_2, -cubeSize_2, -cubeSize_2),
+                new Vector3D(-cubeSize_2, +cubeSize_2, -cubeSize_2),
+                new Vector3D(+cubeSize_2, +cubeSize_2, -cubeSize_2),
+                new Vector3D(+cubeSize_2, -cubeSize_2, -cubeSize_2)
+        );
 
         // bottom
-        var face6 = new Quad(
-                "Bottom face",
-                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2),
-                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2),
-                new Vector3D(pos.x() + cubeSize_2, pos.y() + cubeSize_2, pos.z() + cubeSize_2),
-                new Vector3D(pos.x() - cubeSize_2, pos.y() + cubeSize_2, pos.z() + cubeSize_2)
-                );
+        var bottom = new Quad(
+                "Bottom face", colour,
+                new Vector3D(-cubeSize_2, -cubeSize_2, +cubeSize_2),
+                new Vector3D(+cubeSize_2, -cubeSize_2, +cubeSize_2),
+                new Vector3D(+cubeSize_2, +cubeSize_2, +cubeSize_2),
+                new Vector3D(-cubeSize_2, +cubeSize_2, +cubeSize_2)
+        );
 
-        return List.of(face1, face2, face3, face4, face5, face6);
+        baseFaces = List.of(front, left, back, right, top, bottom);
+        updateFaces();
     }
 
     @Override
     public void update(double dt) {
         angle += angularVelocity * dt;
-        totalTime += dt;
+//        totalTime += dt;
+
+        // Rotate all the faces
+        updateFaces();
+
 //        pos = new Vector3D(Math.sin(totalTime * 0.001) * 50, pos.y(), Math.sin(totalTime * 0.002) * 15);
 //        System.out.println(pos.x());
+    }
+
+    private void updateFaces() {
+        List<Quad> newFaces = new ArrayList<>();
+        // Rotate the original faces and then translate their position
+        for (Quad face : baseFaces) {
+            newFaces.add(new Quad(face.getName(), face.getColour(),
+                    face.p1.rotateZ(angle).add(pos),
+                    face.p2.rotateZ(angle).add(pos),
+                    face.p3.rotateZ(angle).add(pos),
+                    face.p4.rotateZ(angle).add(pos)));
+        }
+        faces = newFaces;
     }
 
     @Override
@@ -130,18 +150,36 @@ public class Cube extends Object3D {
 
     @Override
     Intersection getIntersection(Vector3D ray, Vector3D rayOrigin) {
+
+        // Calculate intersections for each object
+        Intersection closestIntersection = null;
+        double nearestIntersectionDistance = Double.MAX_VALUE;
+
         for (Quad face : faces) {
             Intersection intersection = face.getIntersection(ray, rayOrigin);
             if (intersection != null) {
-                return intersection;
+                double intersectionDistance = intersection.point().subtract(rayOrigin).magnitude2();
+                if (intersectionDistance < nearestIntersectionDistance) {
+                    closestIntersection = intersection;
+                    nearestIntersectionDistance = intersectionDistance;
+                }
             }
         }
+        if (closestIntersection != null) {
+            return closestIntersection;
+        }
+//        for (Quad face : faces) {
+//            Intersection intersection = face.getIntersection(ray, rayOrigin);
+//            if (intersection != null) {
+//                return intersection;
+//            }
+//        }
         return null;
     }
 
     @Override
     Color getColour() {
-        return new Color(0xffecd1);
+        return colour;
     }
 
     public Vector3D getPos() {
@@ -150,6 +188,5 @@ public class Cube extends Object3D {
 
     public void setPos(Vector3D pos) {
         this.pos = pos;
-        this.faces = generateFaces(pos);
     }
 }

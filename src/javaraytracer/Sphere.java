@@ -4,13 +4,15 @@ import java.awt.*;
 
 public class Sphere extends Object3D {
 
+    private final Color colour;
     private Vector3D position;
     private final double radius;
     private final double radiusSq;
     private double totalTime = 0;
 
-    public Sphere(Vector3D position, double radius) {
+    public Sphere(Color colour, Vector3D position, double radius) {
         super("Sphere");
+        this.colour = colour;
         this.position = position;
         this.radius = radius;
         this.radiusSq = radius * radius;
@@ -19,7 +21,7 @@ public class Sphere extends Object3D {
     @Override
     void update(double dt) {
         totalTime += dt;
-        position = new Vector3D(Math.sin(totalTime * 0.001) * 350, position.y(), Math.sin(totalTime * 0.002) * 100);
+        position = new Vector3D(position.x(), position.y(), Math.sin(totalTime * 0.001) * 50);
     }
 
     @Override
@@ -47,7 +49,7 @@ public class Sphere extends Object3D {
 
     @Override
     Color getColour() {
-        return new Color(0xF6B34D);
+        return colour;
     }
 
     @Override

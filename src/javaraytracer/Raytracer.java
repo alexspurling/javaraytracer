@@ -38,28 +38,34 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
     private List<Object3D> generateObjects() {
         return List.of(
-                new Quad("Floor",
-                        new Vector3D(-500, 1000, 300),
+                new Quad("Background", new Color(0xffffff),
+                        new Vector3D(-2000, 2000, 2000),
+                        new Vector3D(-2000, 2000, -2000),
+                        new Vector3D(2000, 2000, -2000),
+                        new Vector3D(2000, 2000, 2000)),
+                new Quad("Floor", new Color(0x77E1F1),
+                        new Vector3D(-500, 600, 300),
                         new Vector3D(-500, 1600, 300),
                         new Vector3D(500, 1600, 300),
-                        new Vector3D(500, 1000, 300)),
-                new Quad("Left wall",
+                        new Vector3D(500, 600, 300)),
+                new Quad("Left wall", new Color(0x77E1F1),
                         new Vector3D(-500, 1000, 300),
                         new Vector3D(-500, 1000, 100),
                         new Vector3D(-500, 1600, 100),
                         new Vector3D(-500, 1600, 300)),
-                new Quad("Right wall",
+                new Quad("Right wall", new Color(0x77E1F1),
                         new Vector3D(500, 1000, 300),
                         new Vector3D(500, 1600, 300),
                         new Vector3D(500, 1600, 100),
                         new Vector3D(500, 1000, 100)),
-                new Quad("Back wall",
+                new Quad("Back wall", new Color(0x77E1F1),
                         new Vector3D(-500, 1600, 300),
                         new Vector3D(-500, 1600, 100),
                         new Vector3D(500, 1600, 100),
                         new Vector3D(500, 1600, 300)),
-                new Sphere(new Vector3D(75, 1000, 0), 100),
-                new Cube(new Vector3D(-250, 1200, -120), 100, 1.0 / 1000)
+                new Sphere(new Color(0x5AA184), new Vector3D(75, 1050, 0), 100),
+                new Cube(new Color(0xE0C49E), new Vector3D(-250, 1100, 160), 100, 0.001),
+                new Cube(new Color(0xE0C49E), new Vector3D(250, 1100, 160), 100, 0.001)
         );
     }
 

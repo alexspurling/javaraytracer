@@ -52,10 +52,6 @@ public record Vector3D(double x, double y, double z) {
         return new Vector3D(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x);
     }
 
-    public Vector3D rotate(Vector3D to) {
-        return null;
-    }
-
     /* Rotate about the Z axis */
     public Vector3D rotateZ(double angle) {
         double c = cos(angle);
