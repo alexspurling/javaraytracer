@@ -6,12 +6,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import static java.lang.Math.cos;
-import static java.lang.Math.tan;
 
 public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseListener, KeyListener {
 
@@ -43,19 +38,23 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
     private List<Object3D> generateObjects() {
         return List.of(
-                new Quad(new Vector3D(-500, 1000, 300),
+                new Quad("Floor",
+                        new Vector3D(-500, 1000, 300),
                         new Vector3D(-500, 1600, 300),
                         new Vector3D(500, 1600, 300),
                         new Vector3D(500, 1000, 300)),
-                new Quad(new Vector3D(-500, 1000, 300),
+                new Quad("Left wall",
+                        new Vector3D(-500, 1000, 300),
                         new Vector3D(-500, 1000, 100),
                         new Vector3D(-500, 1600, 100),
                         new Vector3D(-500, 1600, 300)),
-                new Quad(new Vector3D(500, 1000, 300),
+                new Quad("Right wall",
+                        new Vector3D(500, 1000, 300),
                         new Vector3D(500, 1600, 300),
                         new Vector3D(500, 1600, 100),
                         new Vector3D(500, 1000, 100)),
-                new Quad(new Vector3D(-500, 1600, 300),
+                new Quad("Back wall",
+                        new Vector3D(-500, 1600, 300),
                         new Vector3D(-500, 1600, 100),
                         new Vector3D(500, 1600, 100),
                         new Vector3D(500, 1600, 300)),
@@ -105,6 +104,7 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
                 // Calculate intersections for each object
                 Intersection closestIntersection = null;
                 double nearestIntersectionDistance = Double.MAX_VALUE;
+                Object3D intersectionObject = null;
 
                 for (Object3D object : objects) {
                     Intersection intersection = object.getIntersection(pixelRay, rayOrigin);
@@ -113,13 +113,14 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
                         if (intersectionDistance < nearestIntersectionDistance) {
                             closestIntersection = intersection;
                             nearestIntersectionDistance = intersectionDistance;
+                            intersectionObject = object;
                         }
                     }
                 }
 //
                 int i = x + y * WIDTH;
                 if (closestIntersection != null) {
-                    pixels[i] = calculateColour(lights.get(0), closestIntersection);
+                    pixels[i] = calculateColour(lights.get(0), intersectionObject, closestIntersection);
                 }
             }
         });
@@ -176,7 +177,7 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         g.dispose();
     }
 
-    private int calculateColour(Light light, Intersection litPoint) {
+    private int calculateColour(Light light, Object3D litObject, Intersection litPoint) {
         Vector3D toLight = light.getPos().subtract(litPoint.point()).unit();
         // Because both vectors are unit vectors, we should receive a value between 0 and 1
         double amountLit = litPoint.normal().dot(toLight);
@@ -187,15 +188,16 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
         // Check if there are any intersections with other objects that are blocking the light
         for (Object3D object : objects) {
-            if (object != litPoint.object()) {
+            if (object != litObject) {
                 Intersection intersection = object.getIntersection(toLight, litPoint.point());
                 if (intersection != null) {
+                    Intersection intersection2 = object.getIntersection(toLight, litPoint.point());
                     return 0;
                 }
             }
         }
 
-        Color objColour = litPoint.object().getColour();
+        Color objColour = litObject.getColour();
         int red = (int) (objColour.getRed() * amountLit);
         int green = (int) (objColour.getGreen() * amountLit);
         int blue = (int) (objColour.getBlue() * amountLit);
@@ -240,19 +242,19 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         }
         if (keysPressed.contains(KeyEvent.VK_W)) {
             Cube lastCube = (Cube) objects.get(objects.size() - 1);
-            lastCube.setPos(lastCube.getPos().add(new Vector3D(0, 0, -0.01)));
+            lastCube.setPos(lastCube.getPos().add(new Vector3D(0, 0, -0.1 * dt)));
         }
         if (keysPressed.contains(KeyEvent.VK_S)) {
             Cube lastCube = (Cube) objects.get(objects.size() - 1);
-            lastCube.setPos(lastCube.getPos().add(new Vector3D(0, 0, 0.01)));
+            lastCube.setPos(lastCube.getPos().add(new Vector3D(0, 0, 0.1 * dt)));
         }
         if (keysPressed.contains(KeyEvent.VK_A)) {
             Cube lastCube = (Cube) objects.get(objects.size() - 1);
-            lastCube.setPos(lastCube.getPos().add(new Vector3D(-0.01, 0, 0)));
+            lastCube.setPos(lastCube.getPos().add(new Vector3D(-0.1 * dt, 0, 0)));
         }
         if (keysPressed.contains(KeyEvent.VK_D)) {
             Cube lastCube = (Cube) objects.get(objects.size() - 1);
-            lastCube.setPos(lastCube.getPos().add(new Vector3D(0.01, 0, 0)));
+            lastCube.setPos(lastCube.getPos().add(new Vector3D(0.1 * dt, 0, 0)));
         }
     }
 

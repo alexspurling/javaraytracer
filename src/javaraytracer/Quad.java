@@ -22,7 +22,8 @@ public class Quad extends Object3D {
     public double vP1;
     public double vP4;
 
-    public Quad(Vector3D p1, Vector3D p2, Vector3D p3, Vector3D p4) {
+    public Quad(String name, Vector3D p1, Vector3D p2, Vector3D p3, Vector3D p4) {
+        super(name);
         this.p1 = p1;
         this.p2 = p2;
         this.p3 = p3;
@@ -92,7 +93,7 @@ public class Quad extends Object3D {
 
         if (ux > uP2 && ux < uP1 &&
                 vx > vP4 && vx < vP1) {
-            return new Intersection(this, planeIntersection, normal);
+            return new Intersection(planeIntersection, normal);
         }
         return null;
     }

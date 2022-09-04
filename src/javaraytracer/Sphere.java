@@ -10,6 +10,7 @@ public class Sphere extends Object3D {
     private double totalTime = 0;
 
     public Sphere(Vector3D position, double radius) {
+        super("Sphere");
         this.position = position;
         this.radius = radius;
         this.radiusSq = radius * radius;
@@ -29,8 +30,8 @@ public class Sphere extends Object3D {
         // toCentre.magnitude() = Math.sqrt(rayComponent * rayComponent + rayDistanceFromCentre * rayDistanceFromCentre);
         // toCentre.magnitude() * toCentre.magnitude() = rayComponent * rayComponent + rayDistanceFromCentre * rayDistanceFromCentre;
         // rayDistanceFromCentre * rayDistanceFromCentre = toCentre.magnitude() * toCentre.magnitude() / rayComponent * rayComponent
-        double distanceFromCentreSquared = (rayToCentre.magnitude() * rayToCentre.magnitude()) - (rayComponent * rayComponent);
-//        double rayDistanceFromCentre = Math.sqrt(distanceFromCentreSquared);
+        double rayToCentreLength = rayToCentre.magnitude();
+        double distanceFromCentreSquared = (rayToCentreLength * rayToCentreLength) - (rayComponent * rayComponent);
 
         if (distanceFromCentreSquared > radiusSq) {
             return null;
@@ -41,7 +42,7 @@ public class Sphere extends Object3D {
         Vector3D intersectionPoint = rayOrigin.add(unitRay.scaleTo(rayComponent - intersectionDistance));
         Vector3D normal = intersectionPoint.subtract(position).unit();
 
-        return new Intersection(this, intersectionPoint, normal);
+        return new Intersection(intersectionPoint, normal);
     }
 
     @Override

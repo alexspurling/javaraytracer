@@ -1,7 +1,7 @@
 package javaraytracer;
 
 import java.awt.*;
-import java.util.Optional;
+import java.util.List;
 
 public class Cube extends Object3D {
 
@@ -11,10 +11,75 @@ public class Cube extends Object3D {
     private double angle = 0;
     private double totalTime = 0;
 
+    private List<Quad> faces;
+
+
     public Cube(Vector3D pos, double size, double angularVelocity) {
+        super("Cube");
+
         this.pos = pos;
         this.cubeSize_2 = size / 2;
         this.angularVelocity = angularVelocity;
+
+        // front
+        this.faces = generateFaces(pos);
+    }
+
+    private List<Quad> generateFaces(Vector3D pos) {
+        var face1 = new Quad(
+                "Front face",
+                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
+                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
+                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2),
+                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2)
+                );
+
+        // left
+        var face2 = new Quad(
+                "Left face",
+                new Vector3D(pos.x() - cubeSize_2, pos.y() + cubeSize_2, pos.z() - cubeSize_2),
+                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
+                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2),
+                new Vector3D(pos.x() - cubeSize_2, pos.y() + cubeSize_2, pos.z() + cubeSize_2)
+                );
+
+        // back
+        var face3 = new Quad(
+                "Back face",
+                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
+                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
+                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2),
+                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2)
+                );
+
+        // right
+        var face4 = new Quad(
+                "Right face",
+                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
+                new Vector3D(pos.x() + cubeSize_2, pos.y() + cubeSize_2, pos.z() - cubeSize_2),
+                new Vector3D(pos.x() + cubeSize_2, pos.y() + cubeSize_2, pos.z() + cubeSize_2),
+                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2)
+                );
+
+        // top
+        var face5 = new Quad(
+                "Top face",
+                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2),
+                new Vector3D(pos.x() - cubeSize_2, pos.y() + cubeSize_2, pos.z() - cubeSize_2),
+                new Vector3D(pos.x() + cubeSize_2, pos.y() + cubeSize_2, pos.z() - cubeSize_2),
+                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() - cubeSize_2)
+                );
+
+        // bottom
+        var face6 = new Quad(
+                "Bottom face",
+                new Vector3D(pos.x() - cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2),
+                new Vector3D(pos.x() + cubeSize_2, pos.y() - cubeSize_2, pos.z() + cubeSize_2),
+                new Vector3D(pos.x() + cubeSize_2, pos.y() + cubeSize_2, pos.z() + cubeSize_2),
+                new Vector3D(pos.x() - cubeSize_2, pos.y() + cubeSize_2, pos.z() + cubeSize_2)
+                );
+
+        return List.of(face1, face2, face3, face4, face5, face6);
     }
 
     @Override
@@ -23,16 +88,6 @@ public class Cube extends Object3D {
         totalTime += dt;
 //        pos = new Vector3D(Math.sin(totalTime * 0.001) * 50, pos.y(), Math.sin(totalTime * 0.002) * 15);
 //        System.out.println(pos.x());
-    }
-
-    @Override
-    Intersection getIntersection(Vector3D ray, Vector3D rayOrigin) {
-        return null;
-    }
-
-    @Override
-    Color getColour() {
-        return null;
     }
 
     @Override
@@ -70,7 +125,23 @@ public class Cube extends Object3D {
     }
 
     private void drawLine(Graphics g, Vector2D p1, Vector2D p2) {
-        g.drawLine((int) p1.x(), (int) p1.y(), (int) p2.x(), (int) p2.y());
+//        g.drawLine((int) p1.x(), (int) p1.y(), (int) p2.x(), (int) p2.y());
+    }
+
+    @Override
+    Intersection getIntersection(Vector3D ray, Vector3D rayOrigin) {
+        for (Quad face : faces) {
+            Intersection intersection = face.getIntersection(ray, rayOrigin);
+            if (intersection != null) {
+                return intersection;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    Color getColour() {
+        return new Color(0xffecd1);
     }
 
     public Vector3D getPos() {
@@ -79,5 +150,6 @@ public class Cube extends Object3D {
 
     public void setPos(Vector3D pos) {
         this.pos = pos;
+        this.faces = generateFaces(pos);
     }
 }
