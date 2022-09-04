@@ -168,6 +168,17 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
             // we're facing away from the light so should be in shadow
             return 0;
         }
+
+        // Check if there are any intersections with other objects that are blocking the light
+        for (Object3D object : objects) {
+            if (object != litPoint.object()) {
+                Intersection intersection = object.getIntersection(toLight, litPoint.point());
+                if (intersection != null) {
+                    return 0;
+                }
+            }
+        }
+
         Color objColour = litPoint.object().getColour();
         int red = (int) (objColour.getRed() * amountLit);
         int green = (int) (objColour.getGreen() * amountLit);

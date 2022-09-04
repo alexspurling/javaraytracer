@@ -24,8 +24,8 @@ public class Sphere extends Object3D {
     }
 
     @Override
-    Intersection getIntersection(Vector3D ray, Vector3D rayPos) {
-        Vector3D rayToCentre = position.subtract(rayPos);
+    Intersection getIntersection(Vector3D ray, Vector3D rayOrigin) {
+        Vector3D rayToCentre = position.subtract(rayOrigin);
         Vector3D unitRay = ray.unit();
         double rayComponent = rayToCentre.dot(unitRay);
         // toCentre.magnitude() = Math.sqrt(rayComponent * rayComponent + rayDistanceFromCentre * rayDistanceFromCentre);
@@ -40,7 +40,7 @@ public class Sphere extends Object3D {
 
         double intersectionDistance = Math.sqrt(radiusSq - distanceFromCentreSquared);
 
-        Vector3D intersectionPoint = rayPos.add(unitRay.scaleTo(rayComponent - intersectionDistance));
+        Vector3D intersectionPoint = rayOrigin.add(unitRay.scaleTo(rayComponent - intersectionDistance));
         Vector3D normal = intersectionPoint.subtract(position).scaleTo(1);
 
         return new Intersection(this, intersectionPoint, normal);

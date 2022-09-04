@@ -9,7 +9,7 @@ public abstract class Object3D {
 
     abstract void update(double dt);
 
-    abstract Intersection getIntersection(Vector3D ray, Vector3D rayPos);
+    abstract Intersection getIntersection(Vector3D ray, Vector3D rayOrigin);
 
     abstract Color getColour();
 }

@@ -26,7 +26,7 @@ public class Cube extends Object3D {
     }
 
     @Override
-    Intersection getIntersection(Vector3D ray, Vector3D rayPos) {
+    Intersection getIntersection(Vector3D ray, Vector3D rayOrigin) {
         return null;
     }
 
