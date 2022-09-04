@@ -1,8 +1,6 @@
 package javaraytracer;
 
 import java.awt.*;
-import java.util.List;
-import java.util.Optional;
 
 public class Sphere extends Object3D {
 
@@ -20,7 +18,7 @@ public class Sphere extends Object3D {
     @Override
     void update(double dt) {
         totalTime += dt;
-        position = new Vector3D(Math.sin(totalTime * 0.001) * 500, position.y(), Math.sin(totalTime * 0.002) * 200);
+        position = new Vector3D(Math.sin(totalTime * 0.001) * 350, position.y(), Math.sin(totalTime * 0.002) * 100);
     }
 
     @Override
@@ -41,14 +39,14 @@ public class Sphere extends Object3D {
         double intersectionDistance = Math.sqrt(radiusSq - distanceFromCentreSquared);
 
         Vector3D intersectionPoint = rayOrigin.add(unitRay.scaleTo(rayComponent - intersectionDistance));
-        Vector3D normal = intersectionPoint.subtract(position).scaleTo(1);
+        Vector3D normal = intersectionPoint.subtract(position).unit();
 
         return new Intersection(this, intersectionPoint, normal);
     }
 
     @Override
     Color getColour() {
-        return Color.YELLOW;
+        return new Color(0xF6B34D);
     }
 
     @Override

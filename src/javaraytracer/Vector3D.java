@@ -30,6 +30,10 @@ public record Vector3D(double x, double y, double z) {
         return x * x + y * y + z * z;
     }
 
+    public Vector3D scale(double scale) {
+        return new Vector3D(x * scale, y * scale, z * scale);
+    }
+
     public Vector3D scaleTo(double scale) {
         double magnitude = magnitude();
         return new Vector3D(scale * x / magnitude, scale * y / magnitude, scale * z / magnitude);
@@ -42,6 +46,10 @@ public record Vector3D(double x, double y, double z) {
 
     public double dot(Vector3D b) {
         return x * b.x + y * b.y + z * b.z;
+    }
+
+    public Vector3D cross(Vector3D b) {
+        return new Vector3D(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x);
     }
 
     public Vector3D rotate(Vector3D to) {

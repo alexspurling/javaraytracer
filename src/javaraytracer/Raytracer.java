@@ -15,7 +15,7 @@ import static java.lang.Math.tan;
 
 public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseListener, KeyListener {
 
-    public static final int WIDTH = 512;
+    public static final int WIDTH = 640;
     public static final int WIDTH_2 = WIDTH / 2;
     public static final int HEIGHT = 512;
     public static final int HEIGHT_2 = HEIGHT / 2;
@@ -43,23 +43,23 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
     private List<Object3D> generateObjects() {
         return List.of(
-                new Quad(new Vector3D(-500, 800, 300),
-                        new Vector3D(-500, 1400, 300),
-                        new Vector3D(500, 1400, 300),
-                        new Vector3D(500, 800, 300)),
-                new Quad(new Vector3D(-500, 800, 300),
-                        new Vector3D(-500, 1400, 300),
-                        new Vector3D(-500, 1400, 100),
-                        new Vector3D(-500, 800, 100)),
-                new Quad(new Vector3D(500, 800, 300),
-                        new Vector3D(500, 1400, 300),
-                        new Vector3D(500, 1400, 100),
-                        new Vector3D(500, 800, 100)),
-                new Quad(new Vector3D(-500, 1400, 300),
-                        new Vector3D(500, 1400, 300),
-                        new Vector3D(500, 1400, 100),
-                        new Vector3D(-500, 1400, 100)),
-                new Sphere(new Vector3D(75, 1200, 0), 100),
+                new Quad(new Vector3D(-500, 1000, 300),
+                        new Vector3D(-500, 1600, 300),
+                        new Vector3D(500, 1600, 300),
+                        new Vector3D(500, 1000, 300)),
+                new Quad(new Vector3D(-500, 1000, 300),
+                        new Vector3D(-500, 1000, 100),
+                        new Vector3D(-500, 1600, 100),
+                        new Vector3D(-500, 1600, 300)),
+                new Quad(new Vector3D(500, 1000, 300),
+                        new Vector3D(500, 1600, 300),
+                        new Vector3D(500, 1600, 100),
+                        new Vector3D(500, 1000, 100)),
+                new Quad(new Vector3D(-500, 1600, 300),
+                        new Vector3D(-500, 1600, 100),
+                        new Vector3D(500, 1600, 100),
+                        new Vector3D(500, 1600, 300)),
+                new Sphere(new Vector3D(75, 1000, 0), 100),
                 new Cube(new Vector3D(-250, 1200, -120), 100, 1.0 / 1000)
         );
     }
@@ -150,6 +150,22 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         g2.setColor(Color.WHITE);
         g2.drawString("FPS: " + fps, WIDTH - 100, 40);
         g2.drawString("Plane:" + projector.getProjectionPlane(), WIDTH - 100, 60);
+
+        Quad quad = (Quad) objects.get(0);
+        Vector3D pixelRay = new Vector3D((double) mousePos.x() - WIDTH_2, projector.getProjectionPlane(), (double) mousePos.y() - HEIGHT_2);
+        quad.getIntersection(pixelRay, rayOrigin);
+
+//        g2.drawString("p2dot:" + quad.p2dot, WIDTH - 200, 80);
+//        g2.drawString("p3dot:" + quad.p3dot, WIDTH - 200, 100);
+//        g2.drawString("p4dot:" + quad.p4dot, WIDTH - 200, 120);
+
+//        g2.drawString("ux:" + quad.ux, WIDTH - 200, 80);
+//        g2.drawString("uP1:" + quad.uP1, WIDTH - 200, 100);
+//        g2.drawString("uP2:" + quad.uP2, WIDTH - 200, 120);
+//
+//        g2.drawString("vx:" + quad.vx, WIDTH - 200, 140);
+//        g2.drawString("vP1:" + quad.vP1, WIDTH - 200, 160);
+//        g2.drawString("vP4:" + quad.vP4, WIDTH - 200, 180);
 
 //        Cube lastCube = (Cube) objects.get(objects.size() - 1);
 //        g.drawString("Cube pos:" + (int) lastCube.getPos().x() + ", " + (int) lastCube.getPos().z(), WIDTH - 100, 80);
