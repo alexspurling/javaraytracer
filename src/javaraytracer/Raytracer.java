@@ -37,7 +37,7 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
     // Pressed keys
     private final Set<Integer> keysPressed = new HashSet<>();
 
-    private final Projector projector = new Projector(WIDTH, HEIGHT, 1000);
+    private final Projector projector = new Projector(WIDTH, HEIGHT, 650);
 
     public Raytracer() {
         img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
@@ -53,9 +53,23 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
     private List<Object3D> generateObjects() {
         return List.of(
+                new Quad(new Vector3D(-500, 800, 300),
+                        new Vector3D(-500, 1400, 300),
+                        new Vector3D(500, 1400, 300),
+                        new Vector3D(500, 800, 300)),
+                new Quad(new Vector3D(-500, 800, 300),
+                        new Vector3D(-500, 1400, 300),
+                        new Vector3D(-500, 1400, 100),
+                        new Vector3D(-500, 800, 100)),
+                new Quad(new Vector3D(500, 800, 300),
+                        new Vector3D(500, 1400, 300),
+                        new Vector3D(500, 1400, 100),
+                        new Vector3D(500, 800, 100)),
+                new Quad(new Vector3D(-500, 1400, 300),
+                        new Vector3D(500, 1400, 300),
+                        new Vector3D(500, 1400, 100),
+                        new Vector3D(-500, 1400, 100)),
                 new Sphere(new Vector3D(75, 1200, 0), 100),
-                new Quad(new Vector3D(-100, 0, -100), new Vector3D(100, 0, -100),
-                        new Vector3D(-100, 200, -100), new Vector3D(100, 200, -100)),
                 new Cube(new Vector3D(-500, 1200, -250), 100, 1.0 / 1000),
                 new Cube(new Vector3D(-250, 1200, -250), 100, 1.0 / 1000),
                 new Cube(new Vector3D(0, 1200, -250), 100, 1.0 / 1000),

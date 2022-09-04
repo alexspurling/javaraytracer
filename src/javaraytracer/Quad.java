@@ -17,7 +17,14 @@ public class Quad extends Object3D {
 
     @Override
     void draw(Graphics g, Projector p) {
+        Vector2D p1p = p.project(p1);
+        Vector2D p2p = p.project(p2);
+        Vector2D p3p = p.project(p3);
+        Vector2D p4p = p.project(p4);
 
+        g.setColor(Color.MAGENTA.darker().darker());
+        g.fillPolygon(new Polygon(new int[] {(int) p1p.x(), (int) p2p.x(), (int) p3p.x(), (int) p4p.x()},
+                new int[] {(int) p1p.y(), (int) p2p.y(), (int) p3p.y(), (int) p4p.y()}, 4));
     }
 
     @Override
