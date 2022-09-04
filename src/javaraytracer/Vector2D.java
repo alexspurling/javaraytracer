@@ -27,6 +27,10 @@ public record Vector2D(double x, double y) {
         return Math.sqrt(x * x + y * y);
     }
 
+    public Vector2D scale(double scale) {
+        return new Vector2D(scale * x, scale * y);
+    }
+
     public Vector2D scaleTo(double scale) {
         double magnitude = magnitude();
         return new Vector2D(scale * x / magnitude, scale * y / magnitude);

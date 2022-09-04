@@ -7,14 +7,12 @@ public class Projector {
 
     private final int width;
     private final int height;
-    private final double screenRatio;
     private double projectionPlane;
 
     public Projector(int width, int height, double projectionPlane) {
         this.projectionPlane = projectionPlane;
         this.width = width;
         this.height = height;
-        this.screenRatio = (double) height / width;
     }
 
     public List<Vector2D> project(List<Vector3D> points) {

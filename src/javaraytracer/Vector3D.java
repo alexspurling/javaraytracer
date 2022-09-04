@@ -1,6 +1,5 @@
 package javaraytracer;
 
-import java.util.List;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 

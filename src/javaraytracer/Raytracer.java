@@ -4,13 +4,11 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
-import java.util.Set;
 
 import static java.lang.Math.cos;
-import static java.lang.Math.sin;
+import static java.lang.Math.tan;
 
 public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseListener, KeyListener {
 
@@ -34,21 +32,19 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
     private final double angle;
 
     // Mouse position
-    private int xPos;
-    private int yPos;
+    private Vector2D mousePos;
 
     // Pressed keys
     private final Set<Integer> keysPressed = new HashSet<>();
 
-    private final Projector projector = new Projector(WIDTH, HEIGHT, 600);
+    private final Projector projector = new Projector(WIDTH, HEIGHT, 1000);
 
     public Raytracer() {
         img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         pixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
         r = new Random();
 
-        xPos = WIDTH / 2;
-        yPos = HEIGHT / 2;
+        mousePos = new Vector2D(WIDTH / 2, HEIGHT / 2);
 
         objects = generateObjects();
         player = new Vector3D(0, 0, 0);
@@ -57,24 +53,24 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
     private List<Object3D> generateObjects() {
         return List.of(
-                new Sphere(new Vector3D(0, 50, 0), 10),
+                new Sphere(new Vector3D(75, 1200, 0), 100),
                 new Quad(new Vector3D(-100, 0, -100), new Vector3D(100, 0, -100),
                         new Vector3D(-100, 200, -100), new Vector3D(100, 200, -100)),
-                new Cube(new Vector3D(-100, 200, -50), 20, 1.0 / 1000),
-                new Cube(new Vector3D(-50, 200, -50), 20, 1.0 / 1000),
-                new Cube(new Vector3D(0, 200, -50), 20, 1.0 / 1000),
-                new Cube(new Vector3D(50, 200, -50), 20, 1.0 / 1000),
-                new Cube(new Vector3D(100, 200, -50), 20, 1.0 / 1000),
-                new Cube(new Vector3D(-100, 200, 0), 20, 1.0 / 1000),
-                new Cube(new Vector3D(-50, 200, 0), 20, 1.0 / 1000),
-                new Cube(new Vector3D(0, 200, 0), 20, 1.0 / 1000),
-                new Cube(new Vector3D(50, 200, 0), 20, 1.0 / 1000),
-                new Cube(new Vector3D(100, 200, 0), 20, 1.0 / 1000),
-                new Cube(new Vector3D(-50, 200, 50), 20, 1.0 / 1000),
-                new Cube(new Vector3D(-100, 200, 50), 20, 1.0 / 1000),
-                new Cube(new Vector3D(0, 200, 50), 20, 1.0 / 1000),
-                new Cube(new Vector3D(50, 200, 50), 20, 1.0 / 1000),
-                new Cube(new Vector3D(100, 200, 50), 20, 1.0 / 1000)
+                new Cube(new Vector3D(-500, 1200, -250), 100, 1.0 / 1000),
+                new Cube(new Vector3D(-250, 1200, -250), 100, 1.0 / 1000),
+                new Cube(new Vector3D(0, 1200, -250), 100, 1.0 / 1000),
+                new Cube(new Vector3D(250, 1200, -250), 100, 1.0 / 1000),
+                new Cube(new Vector3D(500, 1200, -250), 100, 1.0 / 1000),
+                new Cube(new Vector3D(-500, 1200, 0), 100, 1.0 / 1000),
+                new Cube(new Vector3D(-250, 1200, 0), 100, 1.0 / 1000),
+                new Cube(new Vector3D(0, 1200, 0), 100, 1.0 / 1000),
+                new Cube(new Vector3D(250, 1200, 0), 100, 1.0 / 1000),
+                new Cube(new Vector3D(500, 1200, 0), 100, 1.0 / 1000),
+                new Cube(new Vector3D(-250, 1200, 250), 100, 1.0 / 1000),
+                new Cube(new Vector3D(-500, 1200, 250), 100, 1.0 / 1000),
+                new Cube(new Vector3D(0, 1200, 250), 100, 1.0 / 1000),
+                new Cube(new Vector3D(250, 1200, 250), 100, 1.0 / 1000),
+                new Cube(new Vector3D(500, 1200, 250), 100, 1.0 / 1000)
         );
     }
 
@@ -119,6 +115,22 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
             object.update(dt);
         }
 
+//        g.setColor(Color.RED);
+//        Vector2D circlePos = new Vector2D(300, 300);
+//        int radius = 75;
+//        drawCircle(g, circlePos, radius);
+//
+//        g.setColor(Color.YELLOW);
+//        g.fillRect((int) (mousePos.x() - 1), (int) (mousePos.y() - 1), 2, 2);
+
+//        List<Vector2D> tangents = getTangents(circlePos, radius);
+
+//        for (Vector2D tangent : tangents) {
+//            g.drawLine((int) mousePos.x(), (int) mousePos.y(), (int) tangent.x(), (int) tangent.y());
+//        }
+
+
+
 
         frameCount++;
         long time = System.currentTimeMillis();
@@ -135,6 +147,32 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         g.dispose();
     }
 
+    private void drawVec(Graphics g, Vector2D pos, Vector2D vec, Color color) {
+        g.setColor(color);
+        g.drawLine((int) pos.x(), (int) pos.y(), (int) (pos.x() + vec.x()), (int) (pos.y() + vec.y()));
+    }
+
+    double degToRad(double a) { return a * Math.PI / 180.0; }
+
+    private void drawUnitVec(Graphics g, Vector2D pos, Vector2D vec, Color color) {
+        g.setColor(color);
+        Vector2D scaledUnitVec = vec.scaleTo(40);
+        drawVec(g, pos, scaledUnitVec, color);
+        // Left arrow mark
+        drawVec(g, pos.add(scaledUnitVec), vec.rotate(degToRad(145)).scaleTo(10), color);
+        // Right arrow mark
+        drawVec(g, pos.add(scaledUnitVec), vec.rotate(degToRad(215)).scaleTo(10), color);
+    }
+
+    private static void drawCircle(Graphics g, Vector2D pos, int radius) {
+        g.drawOval((int) (pos.x() - radius), (int) (pos.y() - radius), radius * 2, radius * 2);
+    }
+
+    private static void fillCircle(Graphics g, Vector2D pos, int size) {
+        int size_2 = size / 2;
+        g.fillOval((int) (pos.x() - size_2), (int) (pos.y() - size_2), size, size);
+    }
+
     private void updateKeys(double dt) {
 //        if (!keysPressed.isEmpty()) {
 //            System.out.println("Keys pressed: " + keysPressed);
@@ -149,8 +187,7 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        xPos = e.getX();
-        yPos = e.getY();
+        mousePos = new Vector2D(e.getX(), e.getY());
     }
 
     @Override
@@ -159,22 +196,17 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        xPos = e.getX();
-        yPos = e.getY();
-
+        mousePos = new Vector2D(e.getX(), e.getY());
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
-        xPos = e.getX();
-        yPos = e.getY();
-
+        mousePos = new Vector2D(e.getX(), e.getY());
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        xPos = e.getX();
-        yPos = e.getY();
+        mousePos = new Vector2D(e.getX(), e.getY());
     }
 
     @Override
