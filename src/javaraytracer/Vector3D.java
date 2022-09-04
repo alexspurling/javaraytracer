@@ -26,10 +26,19 @@ public record Vector3D(double x, double y, double z) {
         return Math.sqrt(x * x + y * y + z * z);
     }
 
-//    public Vector3D scaleTo(double scale) {
-//        double magnitude = magnitude();
-//        return new Vector3D(scale * x / magnitude, scale * y / magnitude);
-//    }
+    public double magnitude2() {
+        return x * x + y * y + z * z;
+    }
+
+    public Vector3D scaleTo(double scale) {
+        double magnitude = magnitude();
+        return new Vector3D(scale * x / magnitude, scale * y / magnitude, scale * z / magnitude);
+    }
+
+    public Vector3D unit() {
+        double magnitude = magnitude();
+        return new Vector3D(x / magnitude, y / magnitude, z / magnitude);
+    }
 
     public double dot(Vector3D b) {
         return x * b.x + y * b.y + z * b.z;

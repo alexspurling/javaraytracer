@@ -6,30 +6,24 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.tan;
 
 public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseListener, KeyListener {
 
-    public static final int WIDTH = 960;
-    public static final int HEIGHT = 540;
-
-    public static final int BRUSH_SIZE = 20;
-
-    private final double FOV = (double) 100 / 180 * Math.PI;
-    private final double VIEW_PORT_DISTANCE = 20;
-    private final double VIEW_PORT_WIDTH = cos(FOV / 2) * VIEW_PORT_DISTANCE * 2;
-    private final double VIEW_PORT_HEIGHT = cos(FOV / 2) * VIEW_PORT_DISTANCE * 2;
-
+    public static final int WIDTH = 512;
+    public static final int WIDTH_2 = WIDTH / 2;
+    public static final int HEIGHT = 512;
+    public static final int HEIGHT_2 = HEIGHT / 2;
 
     private final BufferedImage img;
     private final int[] pixels;
-    private final Random r;
     private final List<Object3D> objects;
-
-    private final Vector3D player;
-    private final double angle;
+    private final List<Light> lights;
 
     // Mouse position
     private Vector2D mousePos;
@@ -42,13 +36,9 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
     public Raytracer() {
         img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         pixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
-        r = new Random();
-
         mousePos = new Vector2D(WIDTH / 2, HEIGHT / 2);
-
         objects = generateObjects();
-        player = new Vector3D(0, 0, 0);
-        angle = 0;
+        lights = generateLights();
     }
 
     private List<Object3D> generateObjects() {
@@ -70,22 +60,12 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
                         new Vector3D(500, 1400, 100),
                         new Vector3D(-500, 1400, 100)),
                 new Sphere(new Vector3D(75, 1200, 0), 100),
-                new Cube(new Vector3D(-500, 1200, -250), 100, 1.0 / 1000),
-                new Cube(new Vector3D(-250, 1200, -250), 100, 1.0 / 1000),
-                new Cube(new Vector3D(0, 1200, -250), 100, 1.0 / 1000),
-                new Cube(new Vector3D(250, 1200, -250), 100, 1.0 / 1000),
-                new Cube(new Vector3D(500, 1200, -250), 100, 1.0 / 1000),
-                new Cube(new Vector3D(-500, 1200, 0), 100, 1.0 / 1000),
-                new Cube(new Vector3D(-250, 1200, 0), 100, 1.0 / 1000),
-                new Cube(new Vector3D(0, 1200, 0), 100, 1.0 / 1000),
-                new Cube(new Vector3D(250, 1200, 0), 100, 1.0 / 1000),
-                new Cube(new Vector3D(500, 1200, 0), 100, 1.0 / 1000),
-                new Cube(new Vector3D(-250, 1200, 250), 100, 1.0 / 1000),
-                new Cube(new Vector3D(-500, 1200, 250), 100, 1.0 / 1000),
-                new Cube(new Vector3D(0, 1200, 250), 100, 1.0 / 1000),
-                new Cube(new Vector3D(250, 1200, 250), 100, 1.0 / 1000),
-                new Cube(new Vector3D(500, 1200, 250), 100, 1.0 / 1000)
+                new Cube(new Vector3D(-250, 1200, -120), 100, 1.0 / 1000)
         );
+    }
+
+    private List<Light> generateLights() {
+        return List.of(new Light(new Vector3D(250, 800, -140)));
     }
 
     private int frameCount = 0;
@@ -100,34 +80,50 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         double dt = ((double)(curFrameTime - lastFrameTime)) / 1e6; // Convert nanoseconds to milliseconds
         lastFrameTime = curFrameTime;
 
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, WIDTH, HEIGHT);
-//        multiplier += 0.001;
-//        if (multiplier > 64) {
-//            multiplier = 0;
-//        }
-
-//        for (int y = 0; y < HEIGHT; y++) {
-//            for (int x = 0; x < WIDTH; x++) {
-//                // Calculate vector from camera to pixel
-//                Vector3D viewPortPoint = new Vector3D((double) x / WIDTH * VIEW_PORT_WIDTH,  VIEW_PORT_DISTANCE, (double) y / HEIGHT * VIEW_PORT_HEIGHT)
-//                        .rotateZ(angle)
-//                        .add(player);
-//                Vector3D ray = viewPortPoint.subtract(player);
-//
-//                int i = x + y * WIDTH;
-//                pixels[i] = (int)(x * y * multiplier); // r.nextInt(0xffffff);
-//            }
-//        }
-//        g.drawImage(img, 0, 0, WIDTH, HEIGHT, null);
+        var g2 = img.getGraphics();
+        g2.setColor(Color.BLACK);
+        g2.fillRect(0, 0, WIDTH, HEIGHT);
 
         updateKeys(dt);
 
-
         for (Object3D object : objects) {
-            object.draw(g, projector);
+            object.draw(g2, projector);
             object.update(dt);
         }
+
+        Vector3D rayOrigin = new Vector3D(0, 0, 0);
+
+//        int x = 76 + WIDTH_2;
+//        int y = -44 + HEIGHT_2;
+//        for (int y = 0, i = 0; y < HEIGHT; y++) {
+        IntStream.range(0, HEIGHT).parallel().forEach((y) -> {
+            for (int x = 0; x < WIDTH; x++) {
+
+                // Calculate vector from camera to pixel
+                Vector3D pixelRay = new Vector3D((double) x - WIDTH_2, projector.getProjectionPlane(), (double) y - HEIGHT_2);
+
+                // Calculate intersections for each object
+                Intersection closestIntersection = null;
+                double nearestIntersectionDistance = Double.MAX_VALUE;
+
+                for (Object3D object : objects) {
+                    Intersection intersection = object.getIntersection(pixelRay, rayOrigin);
+                    if (intersection != null) {
+                        double intersectionDistance = intersection.point().subtract(rayOrigin).magnitude2();
+                        if (intersectionDistance < nearestIntersectionDistance) {
+                            closestIntersection = intersection;
+                            nearestIntersectionDistance = intersectionDistance;
+                        }
+                    }
+                }
+//
+                int i = x + y * WIDTH;
+                if (closestIntersection != null) {
+                    pixels[i] = calculateColour(lights.get(0), closestIntersection);
+                }
+            }
+        });
+
 
 //        g.setColor(Color.RED);
 //        Vector2D circlePos = new Vector2D(300, 300);
@@ -143,9 +139,6 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 //            g.drawLine((int) mousePos.x(), (int) mousePos.y(), (int) tangent.x(), (int) tangent.y());
 //        }
 
-
-
-
         frameCount++;
         long time = System.currentTimeMillis();
         if (time - lastFpsTime > 1000) {
@@ -154,11 +147,35 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
             frameCount = 0;
             lastFpsTime = time;
         }
-        g.setColor(Color.WHITE);
-        g.drawString("FPS: " + fps, WIDTH - 100, 40);
-        g.drawString("Plane:" + projector.getProjectionPlane(), WIDTH - 100, 60);
+        g2.setColor(Color.WHITE);
+        g2.drawString("FPS: " + fps, WIDTH - 100, 40);
+        g2.drawString("Plane:" + projector.getProjectionPlane(), WIDTH - 100, 60);
 
+//        Cube lastCube = (Cube) objects.get(objects.size() - 1);
+//        g.drawString("Cube pos:" + (int) lastCube.getPos().x() + ", " + (int) lastCube.getPos().z(), WIDTH - 100, 80);
+
+        g.drawImage(img, 0, 0, WIDTH, HEIGHT, null);
+
+        g2.dispose();
         g.dispose();
+    }
+
+    private int calculateColour(Light light, Intersection litPoint) {
+        Vector3D toLight = light.getPos().subtract(litPoint.point()).unit();
+        // Because both vectors are unit vectors, we should receive a value between 0 and 1
+        double amountLit = litPoint.normal().dot(toLight);
+        if (amountLit < 0) {
+            // we're facing away from the light so should be in shadow
+            return 0;
+        }
+        Color objColour = litPoint.object().getColour();
+        int red = (int) (objColour.getRed() * amountLit);
+        int green = (int) (objColour.getGreen() * amountLit);
+        int blue = (int) (objColour.getBlue() * amountLit);
+        int rgb = red;
+        rgb = (rgb << 8) + green;
+        rgb = (rgb << 8) + blue;
+        return rgb;
     }
 
     private void drawVec(Graphics g, Vector2D pos, Vector2D vec, Color color) {
@@ -188,14 +205,27 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
     }
 
     private void updateKeys(double dt) {
-//        if (!keysPressed.isEmpty()) {
-//            System.out.println("Keys pressed: " + keysPressed);
-//        }
         if (keysPressed.contains(KeyEvent.VK_UP)) {
-            projector.setProjectionPlane(projector.getProjectionPlane() + 0.01);
+            projector.setProjectionPlane(projector.getProjectionPlane() + 0.1 * dt);
         }
         if (keysPressed.contains(KeyEvent.VK_DOWN)) {
-            projector.setProjectionPlane(projector.getProjectionPlane() - 0.01);
+            projector.setProjectionPlane(projector.getProjectionPlane() - 0.1 * dt);
+        }
+        if (keysPressed.contains(KeyEvent.VK_W)) {
+            Cube lastCube = (Cube) objects.get(objects.size() - 1);
+            lastCube.setPos(lastCube.getPos().add(new Vector3D(0, 0, -0.01)));
+        }
+        if (keysPressed.contains(KeyEvent.VK_S)) {
+            Cube lastCube = (Cube) objects.get(objects.size() - 1);
+            lastCube.setPos(lastCube.getPos().add(new Vector3D(0, 0, 0.01)));
+        }
+        if (keysPressed.contains(KeyEvent.VK_A)) {
+            Cube lastCube = (Cube) objects.get(objects.size() - 1);
+            lastCube.setPos(lastCube.getPos().add(new Vector3D(-0.01, 0, 0)));
+        }
+        if (keysPressed.contains(KeyEvent.VK_D)) {
+            Cube lastCube = (Cube) objects.get(objects.size() - 1);
+            lastCube.setPos(lastCube.getPos().add(new Vector3D(0.01, 0, 0)));
         }
     }
 

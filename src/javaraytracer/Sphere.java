@@ -2,16 +2,19 @@ package javaraytracer;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Optional;
 
 public class Sphere extends Object3D {
 
     private Vector3D position;
     private final double radius;
+    private final double radiusSq;
     private double totalTime = 0;
 
     public Sphere(Vector3D position, double radius) {
         this.position = position;
         this.radius = radius;
+        this.radiusSq = radius * radius;
     }
 
     @Override
@@ -21,46 +24,41 @@ public class Sphere extends Object3D {
     }
 
     @Override
-    void draw(Graphics g, Projector p) {
-        // Find intersection of vector from camera origin to sphere centre with image plane
+    Intersection getIntersection(Vector3D ray, Vector3D rayPos) {
+        Vector3D rayToCentre = position.subtract(rayPos);
+        Vector3D unitRay = ray.unit();
+        double rayComponent = rayToCentre.dot(unitRay);
+        // toCentre.magnitude() = Math.sqrt(rayComponent * rayComponent + rayDistanceFromCentre * rayDistanceFromCentre);
+        // toCentre.magnitude() * toCentre.magnitude() = rayComponent * rayComponent + rayDistanceFromCentre * rayDistanceFromCentre;
+        // rayDistanceFromCentre * rayDistanceFromCentre = toCentre.magnitude() * toCentre.magnitude() / rayComponent * rayComponent
+        double distanceFromCentreSquared = (rayToCentre.magnitude() * rayToCentre.magnitude()) - (rayComponent * rayComponent);
+//        double rayDistanceFromCentre = Math.sqrt(distanceFromCentreSquared);
 
-//        Vector3D toPlane = getToPlane(position);
-//
-//        List<Vector2D> xTangents = getTangents(new Vector2D(position.x(), position.y()), radius, new Vector2D(0, 0));
-//        List<Vector2D> yTangents = getTangents(new Vector2D(position.z(), position.y()), radius, new Vector2D(0, 0));
-//
-//        List<Vector3D> xTangentPlaneIntersect = getToPlane()
-
-        Vector2D left = p.project(position.add(new Vector3D(-radius, 0, 0)));
-        Vector2D right = p.project(position.add(new Vector3D(radius, 0, 0)));
-        Vector2D top = p.project(position.add(new Vector3D(0, 0, -radius)));
-        Vector2D bottom = p.project(position.add(new Vector3D(0, 0, radius)));
-
-        g.setColor(Color.ORANGE);
-        g.drawOval((int) left.x(), (int) top.y(), (int) (right.x() - left.x()), (int) (bottom.y() - top.y()));
-    }
-
-    private java.util.List<Vector2D> getTangents(Vector2D circlePos, double radius, Vector2D point) {
-        Vector2D p = point.subtract(circlePos);
-
-        double distanceToCircle = p.magnitude();
-
-        if (distanceToCircle <= radius) {
-            return java.util.List.of();
+        if (distanceFromCentreSquared > radiusSq) {
+            return null;
         }
 
-        double a = radius * radius / distanceToCircle;
-        double q = radius * Math.sqrt((distanceToCircle * distanceToCircle) - (radius * radius)) / distanceToCircle;
+        double intersectionDistance = Math.sqrt(radiusSq - distanceFromCentreSquared);
 
-        Vector2D pN = p.scale(1 / distanceToCircle);
+        Vector3D intersectionPoint = rayPos.add(unitRay.scaleTo(rayComponent - intersectionDistance));
+        Vector3D normal = intersectionPoint.subtract(position).scaleTo(1);
 
-        Vector2D pNP = new Vector2D(-pN.y(), pN.x());
+        return new Intersection(this, intersectionPoint, normal);
+    }
 
-        Vector2D va = pN.scale(a);
+    @Override
+    Color getColour() {
+        return Color.YELLOW;
+    }
 
-        Vector2D tangentA = circlePos.add(va.add(pNP.scale(q)));
-        Vector2D tangentB = circlePos.add(va.subtract(pNP.scale(q)));
-
-        return List.of(tangentA, tangentB);
+    @Override
+    void draw(Graphics g, Projector p) {
+//        Vector2D left = p.project(position.add(new Vector3D(-radius, 0, 0)));
+//        Vector2D right = p.project(position.add(new Vector3D(radius, 0, 0)));
+//        Vector2D top = p.project(position.add(new Vector3D(0, 0, -radius)));
+//        Vector2D bottom = p.project(position.add(new Vector3D(0, 0, radius)));
+//
+//        g.setColor(Color.ORANGE);
+//        g.drawOval((int) left.x(), (int) top.y(), (int) (right.x() - left.x()), (int) (bottom.y() - top.y()));
     }
 }

@@ -1,6 +1,7 @@
 package javaraytracer;
 
 import java.awt.*;
+import java.util.Optional;
 
 public class Cube extends Object3D {
 
@@ -22,6 +23,16 @@ public class Cube extends Object3D {
         totalTime += dt;
 //        pos = new Vector3D(Math.sin(totalTime * 0.001) * 50, pos.y(), Math.sin(totalTime * 0.002) * 15);
 //        System.out.println(pos.x());
+    }
+
+    @Override
+    Intersection getIntersection(Vector3D ray, Vector3D rayPos) {
+        return null;
+    }
+
+    @Override
+    Color getColour() {
+        return null;
     }
 
     @Override
@@ -60,5 +71,13 @@ public class Cube extends Object3D {
 
     private void drawLine(Graphics g, Vector2D p1, Vector2D p2) {
         g.drawLine((int) p1.x(), (int) p1.y(), (int) p2.x(), (int) p2.y());
+    }
+
+    public Vector3D getPos() {
+        return pos;
+    }
+
+    public void setPos(Vector3D pos) {
+        this.pos = pos;
     }
 }

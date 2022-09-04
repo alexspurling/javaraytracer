@@ -1,6 +1,7 @@
 package javaraytracer;
 
 import java.awt.*;
+import java.util.Optional;
 
 public class Quad extends Object3D {
     private final Vector3D p1;
@@ -30,5 +31,15 @@ public class Quad extends Object3D {
     @Override
     void update(double dt) {
 
+    }
+
+    @Override
+    Intersection getIntersection(Vector3D ray, Vector3D rayPos) {
+        return null;
+    }
+
+    @Override
+    Color getColour() {
+        return null;
     }
 }
