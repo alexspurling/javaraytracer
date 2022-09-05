@@ -86,11 +86,11 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         long curFrameTime = System.nanoTime();
         double dt = ((double)(curFrameTime - lastFrameTime)) / 1e6; // Convert nanoseconds to milliseconds
         lastFrameTime = curFrameTime;
-        render(g, dt);
+        render(g, dt, 4);
     }
 
     @Override
-    public void render(Graphics g, double dt) {
+    public void render(Graphics g, double dt, int samplesPerPixel) {
 
         var g2 = img.getGraphics();
         g2.setColor(Color.BLACK);
@@ -109,34 +109,56 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 //        int y = -44 + HEIGHT_2;
 //        for (int y = 0, i = 0; y < HEIGHT; y++) {
         IntStream.range(0, HEIGHT).parallel().forEach((y) -> {
+
+            int[] pixelSamples = new int[3];
+
             for (int x = 0; x < WIDTH; x++) {
 
-                // Calculate vector from camera to pixel
-                Vector3D pixelRay = new Vector3D((double) x - WIDTH_2, projector.getProjectionPlane(), (double) y - HEIGHT_2);
+                pixelSamples[0] = 0;
+                pixelSamples[1] = 0;
+                pixelSamples[2] = 0;
 
-                Vector3D unitRay = pixelRay.unit();
+                for (int n = 0; n < samplesPerPixel; n++) {
 
-                // Calculate intersections for each object
-                Intersection closestIntersection = null;
-                double nearestIntersectionDistance = Double.MAX_VALUE;
-                Object3D intersectionObject = null;
+                    double xScreenCoord = x - WIDTH_2 + ((double) n / samplesPerPixel);
+                    double zScreenCoord = y - HEIGHT_2 + ((double) n / samplesPerPixel);
 
-                for (Object3D object : objects) {
-                    Intersection intersection = object.getIntersection(unitRay, rayOrigin);
-                    if (intersection != null) {
-                        double intersectionDistance = intersection.point().subtract(rayOrigin).magnitude2();
-                        if (intersectionDistance < nearestIntersectionDistance) {
-                            closestIntersection = intersection;
-                            nearestIntersectionDistance = intersectionDistance;
-                            intersectionObject = object;
+                    // Calculate vector from camera to pixel
+                    Vector3D pixelRay = new Vector3D(xScreenCoord, projector.getProjectionPlane(), zScreenCoord);
+
+                    // Calculate intersections for each object
+                    Intersection closestIntersection = null;
+                    double nearestIntersectionDistance = Double.MAX_VALUE;
+                    Object3D intersectionObject = null;
+
+                    Vector3D unitRay = pixelRay.unit();
+
+                    for (Object3D object : objects) {
+                        Intersection intersection = object.getIntersection(unitRay, rayOrigin);
+                        if (intersection != null) {
+                            double intersectionDistance = intersection.point().subtract(rayOrigin).magnitude2();
+                            if (intersectionDistance < nearestIntersectionDistance) {
+                                closestIntersection = intersection;
+                                nearestIntersectionDistance = intersectionDistance;
+                                intersectionObject = object;
+                            }
+                        }
+                    }
+//
+                    if (closestIntersection != null) {
+                        int[] pixel = calculateColour(lights.get(0), intersectionObject, closestIntersection);
+                        if (pixel != null) {
+                            pixelSamples[0] += pixel[0];
+                            pixelSamples[1] += pixel[1];
+                            pixelSamples[2] += pixel[2];
                         }
                     }
                 }
-//
                 int i = x + y * WIDTH;
-                if (closestIntersection != null) {
-                    pixels[i] = calculateColour(lights.get(0), intersectionObject, closestIntersection);
-                }
+                int rgb = pixelSamples[0] / samplesPerPixel;
+                rgb = (rgb << 8) + pixelSamples[1] / samplesPerPixel;
+                rgb = (rgb << 8) + pixelSamples[2] / samplesPerPixel;
+                pixels[i] = rgb;
             }
         });
 
@@ -167,9 +189,9 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         g2.drawString("FPS: " + fps, WIDTH - 100, 40);
         g2.drawString("Plane:" + projector.getProjectionPlane(), WIDTH - 100, 60);
 
-        Quad quad = (Quad) objects.get(0);
-        Vector3D pixelRay = new Vector3D((double) mousePos.x() - WIDTH_2, projector.getProjectionPlane(), (double) mousePos.y() - HEIGHT_2);
-        quad.getIntersection(pixelRay, rayOrigin);
+//        Quad quad = (Quad) objects.get(0);
+//        Vector3D pixelRay = new Vector3D((double) mousePos.x() - WIDTH_2, projector.getProjectionPlane(), (double) mousePos.y() - HEIGHT_2);
+//        quad.getIntersection(pixelRay, rayOrigin);
 
 //        g2.drawString("p2dot:" + quad.p2dot, WIDTH - 200, 80);
 //        g2.drawString("p3dot:" + quad.p3dot, WIDTH - 200, 100);
@@ -192,13 +214,13 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         g.dispose();
     }
 
-    private int calculateColour(Light light, Object3D litObject, Intersection litPoint) {
+    private int[] calculateColour(Light light, Object3D litObject, Intersection litPoint) {
         Vector3D toLight = light.getPos().subtract(litPoint.point()).unit();
         // Because both vectors are unit vectors, we should receive a value between 0 and 1
         double amountLit = litPoint.normal().dot(toLight);
         if (amountLit < 0) {
             // we're facing away from the light so should be in shadow
-            return 0;
+            return null;
         }
 
         // Check if there are any intersections with other objects that are blocking the light
@@ -206,7 +228,7 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
             if (object != litObject) {
                 Intersection intersection = object.getIntersection(toLight, litPoint.point());
                 if (intersection != null) {
-                    return 0;
+                    return null;
                 }
             }
         }
@@ -215,10 +237,11 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         int red = (int) (objColour.getRed() * amountLit);
         int green = (int) (objColour.getGreen() * amountLit);
         int blue = (int) (objColour.getBlue() * amountLit);
-        int rgb = red;
-        rgb = (rgb << 8) + green;
-        rgb = (rgb << 8) + blue;
-        return rgb;
+        return new int[] {red, green, blue};
+//        int rgb = red;
+//        rgb = (rgb << 8) + green;
+//        rgb = (rgb << 8) + blue;
+//        return rgb;
     }
 
     private void drawVec(Graphics g, Vector2D pos, Vector2D vec, Color color) {
@@ -339,9 +362,9 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
                 String fileName = String.format("frame%04d.png", frame);
                 System.out.println("Rendering " + fileName);
-                raytracer.render(g2, frameTime);
+                raytracer.render(g2, frameTime, 8);
 
-                File outputfile = new File("output3", fileName);
+                File outputfile = new File("output", fileName);
                 ImageIO.write(myImage, "png", outputfile);
             }
             main.stop();
