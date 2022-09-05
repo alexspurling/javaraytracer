@@ -64,7 +64,7 @@ public class Quad extends Object3D {
     Intersection getIntersection(Vector3D ray, Vector3D rayOrigin) {
         var Pv = rayOrigin;
         var Pp = p1;
-        var Vv = ray.unit();
+        var Vv = ray;
         var Vp = normal;
 
         // Formula for intersection point on a plane:
@@ -76,10 +76,14 @@ public class Quad extends Object3D {
             return null;
         }
 
-        double rayComponent2 = Pp.subtract(Pv).dot(Vp);
+//        double rayComponent2 = Pp.subtract(Pv).dot(Vp);
+//
+//        Vector3D inter = Vv.scale(rayComponent2 / rayComponent);
+//        Vector3D planeIntersection = Pv.add(inter);
 
-        Vector3D inter = Vv.scale(rayComponent2 / rayComponent);
-        Vector3D planeIntersection = Pv.add(inter);
+        // Optimised by assuming ray origin is always 0, 0, 0
+        double scale = Pp.dot(Vp) / rayComponent;
+        Vector3D planeIntersection = new Vector3D(Vv.x() * scale, Vv.y() * scale, Vv.z() * scale);
 
         // Check if the intersection lies within the quad
 

@@ -5,9 +5,10 @@ import java.awt.*;
 public class Sphere extends Object3D {
 
     private final Color colour;
-    private Vector3D position;
+    private final double invRadius;
     private final double radius;
     private final double radiusSq;
+    private Vector3D position;
     private double totalTime = 0;
 
     public Sphere(Color colour, Vector3D position, double radius) {
@@ -16,6 +17,7 @@ public class Sphere extends Object3D {
         this.position = position;
         this.radius = radius;
         this.radiusSq = radius * radius;
+        this.invRadius = 1 / radius;
     }
 
     @Override
@@ -27,13 +29,14 @@ public class Sphere extends Object3D {
     @Override
     Intersection getIntersection(Vector3D ray, Vector3D rayOrigin) {
         Vector3D rayToCentre = position.subtract(rayOrigin);
-        Vector3D unitRay = ray.unit();
+        Vector3D unitRay = ray;
         double rayComponent = rayToCentre.dot(unitRay);
         // toCentre.magnitude() = Math.sqrt(rayComponent * rayComponent + rayDistanceFromCentre * rayDistanceFromCentre);
         // toCentre.magnitude() * toCentre.magnitude() = rayComponent * rayComponent + rayDistanceFromCentre * rayDistanceFromCentre;
         // rayDistanceFromCentre * rayDistanceFromCentre = toCentre.magnitude() * toCentre.magnitude() / rayComponent * rayComponent
-        double rayToCentreLength = rayToCentre.magnitude();
-        double distanceFromCentreSquared = (rayToCentreLength * rayToCentreLength) - (rayComponent * rayComponent);
+//        double rayToCentreLength = rayToCentre.magnitude();
+        double rayToCentreLength2 = rayToCentre.magnitude2();
+        double distanceFromCentreSquared = (rayToCentreLength2) - (rayComponent * rayComponent);
 
         if (distanceFromCentreSquared > radiusSq) {
             return null;
@@ -41,8 +44,10 @@ public class Sphere extends Object3D {
 
         double intersectionDistance = Math.sqrt(radiusSq - distanceFromCentreSquared);
 
-        Vector3D intersectionPoint = rayOrigin.add(unitRay.scaleTo(rayComponent - intersectionDistance));
-        Vector3D normal = intersectionPoint.subtract(position).unit();
+//        Vector3D intersectionPoint = rayOrigin.add(unitRay.scaleTo(rayComponent - intersectionDistance));
+        // Optimised by assuming rayOrigin is always 0, 0, 0
+        Vector3D intersectionPoint = unitRay.scaleTo(rayComponent - intersectionDistance);
+        Vector3D normal = intersectionPoint.subtract(position).scale(invRadius);
 
         return new Intersection(intersectionPoint, normal);
     }
