@@ -12,16 +12,13 @@ public class Quad extends Object3D {
     public final Vector3D p4;
     private final Vector3D normal;
     private final Color colour;
+    private final Vector3D u;
+    private final Vector3D v;
 
-    public double p2dot;
-    public double p3dot;
-    public double p4dot;
-    public double ux;
-    public double vx;
-    public double uP1;
-    public double uP2;
-    public double vP1;
-    public double vP4;
+    private final double uP1;
+    private final double uP2;
+    private final double vP1;
+    private final double vP4;
 
     public Quad(String name, Color colour, Vector3D p1, Vector3D p2, Vector3D p3, Vector3D p4) {
         super(name);
@@ -31,14 +28,20 @@ public class Quad extends Object3D {
         this.p3 = p3;
         this.p4 = p4;
         this.normal = p2.subtract(p1).cross(p3.subtract(p1)).unit();
+        this.u = p1.subtract(p2);
+        this.v = p1.subtract(p4);
+        this.uP1 = u.dot(p1);
+        this.uP2 = u.dot(p2);
+        this.vP1 = v.dot(p1);
+        this.vP4 = v.dot(p3);
     }
 
     @Override
     void draw(Graphics g, Projector p) {
-        Vector2D p1p = p.project(p1);
-        Vector2D p2p = p.project(p2);
-        Vector2D p3p = p.project(p3);
-        Vector2D p4p = p.project(p4);
+//        Vector2D p1p = p.project(p1);
+//        Vector2D p2p = p.project(p2);
+//        Vector2D p3p = p.project(p3);
+//        Vector2D p4p = p.project(p4);
 
 //        g.setColor(Color.MAGENTA.darker().darker());
 //        g.fillPolygon(new Polygon(new int[]{(int) p1p.x(), (int) p2p.x(), (int) p3p.x(), (int) p4p.x()},
@@ -83,18 +86,10 @@ public class Quad extends Object3D {
         // Formula to check if point lies within x, y, z bounds:
         // https://math.stackexchange.com/a/1472080/785030
 
-        Vector3D u = p1.subtract(p2);
-        Vector3D v = p1.subtract(p4);
+        double ux = u.dot(planeIntersection);
+        double vx = v.dot(planeIntersection);
 
-        ux = u.dot(planeIntersection);
-        vx = v.dot(planeIntersection);
-        uP1 = u.dot(p1);
-        uP2 = u.dot(p2);
-        vP1 = v.dot(p1);
-        vP4 = v.dot(p3);
-
-        if (ux > uP2 && ux < uP1 &&
-                vx > vP4 && vx < vP1) {
+        if (ux > uP2 && ux < uP1 && vx > vP4 && vx < vP1) {
             return new Intersection(planeIntersection, normal);
         }
         return null;
