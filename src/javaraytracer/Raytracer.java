@@ -18,8 +18,11 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
     public static final int HEIGHT = 480;
     public static final int HEIGHT_2 = HEIGHT / 2;
 
+    private static final Vector3D RAY_ORIGIN = new Vector3D(0, 0, 0);
+
     private final BufferedImage img;
     private final int[] pixels;
+    private final int[] pixelObjects;
     private final List<Object3D> objects;
     private final List<Light> lights;
 
@@ -34,6 +37,7 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
     public Raytracer() {
         img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         pixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
+        pixelObjects = new int[pixels.length];
         mousePos = new Vector2D(WIDTH / 2, HEIGHT / 2);
         objects = generateObjects();
         lights = generateLights();
@@ -41,34 +45,34 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
     private List<Object3D> generateObjects() {
         return List.of(
-                new Quad("Background", new Color(0xffffff),
-                        new Vector3D(-2000, 2000, 2000),
-                        new Vector3D(-2000, 2000, -2000),
-                        new Vector3D(2000, 2000, -2000),
-                        new Vector3D(2000, 2000, 2000)),
-                new Quad("Floor", new Color(0x77E1F1),
-                        new Vector3D(-500, 600, 300),
-                        new Vector3D(-500, 1600, 300),
-                        new Vector3D(500, 1600, 300),
-                        new Vector3D(500, 600, 300)),
-                new Quad("Left wall", new Color(0x77E1F1),
-                        new Vector3D(-500, 1000, 300),
-                        new Vector3D(-500, 1000, 100),
-                        new Vector3D(-500, 1600, 100),
-                        new Vector3D(-500, 1600, 300)),
-                new Quad("Right wall", new Color(0x77E1F1),
-                        new Vector3D(500, 1000, 300),
-                        new Vector3D(500, 1600, 300),
-                        new Vector3D(500, 1600, 100),
-                        new Vector3D(500, 1000, 100)),
-                new Quad("Back wall", new Color(0x77E1F1),
-                        new Vector3D(-500, 1600, 300),
-                        new Vector3D(-500, 1600, 100),
-                        new Vector3D(500, 1600, 100),
-                        new Vector3D(500, 1600, 300)),
+//                new Quad("Background", new Color(0xffffff),
+//                        new Vector3D(-2000, 2000, 2000),
+//                        new Vector3D(-2000, 2000, -2000),
+//                        new Vector3D(2000, 2000, -2000),
+//                        new Vector3D(2000, 2000, 2000)),
+//                new Quad("Floor", new Color(0x77E1F1),
+//                        new Vector3D(-500, 600, 300),
+//                        new Vector3D(-500, 1600, 300),
+//                        new Vector3D(500, 1600, 300),
+//                        new Vector3D(500, 600, 300)),
+//                new Quad("Left wall", new Color(0x77E1F1),
+//                        new Vector3D(-500, 1000, 300),
+//                        new Vector3D(-500, 1000, 100),
+//                        new Vector3D(-500, 1600, 100),
+//                        new Vector3D(-500, 1600, 300)),
+//                new Quad("Right wall", new Color(0x77E1F1),
+//                        new Vector3D(500, 1000, 300),
+//                        new Vector3D(500, 1600, 300),
+//                        new Vector3D(500, 1600, 100),
+//                        new Vector3D(500, 1000, 100)),
+//                new Quad("Back wall", new Color(0x77E1F1),
+//                        new Vector3D(-500, 1600, 300),
+//                        new Vector3D(-500, 1600, 100),
+//                        new Vector3D(500, 1600, 100),
+//                        new Vector3D(500, 1600, 300)),
                 new Sphere(new Color(0x5AA184), new Vector3D(75, 1050, 0), 100),
-                new Cube(new Color(0xE0C49E), new Vector3D(-250, 1100, 160), 100, 0.001),
-                new Cube(new Color(0xE0C49E), new Vector3D(250, 1100, 160), 100, 0.001)
+                new Cube("Cube 1", new Color(0xE0C49E), new Vector3D(-250, 1100, 160), 100, 0.001)
+//                new Cube("Cube 2", new Color(0xE0C49E), new Vector3D(250, 1100, 160), 100, 0.001)
         );
     }
 
@@ -103,8 +107,6 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
             object.update(dt);
         }
 
-        Vector3D rayOrigin = new Vector3D(0, 0, 0);
-
 //        int x = 76 + WIDTH_2;
 //        int y = -44 + HEIGHT_2;
 //        for (int y = 0, i = 0; y < HEIGHT; y++) {
@@ -114,59 +116,21 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
 
             for (int x = 0; x < WIDTH; x++) {
 
-                pixelSamples[0] = 0;
-                pixelSamples[1] = 0;
-                pixelSamples[2] = 0;
+                double xScreenCoord = x - WIDTH_2;
+                double zScreenCoord = y - HEIGHT_2;
 
-                for (int n = 0; n < samplesPerPixel; n++) {
-
-                    double xScreenCoord = x - WIDTH_2 + ((double) n / samplesPerPixel);
-                    double zScreenCoord = y - HEIGHT_2 + ((double) n / samplesPerPixel);
-
-                    // Calculate vector from camera to pixel
-                    Vector3D pixelRay = new Vector3D(xScreenCoord, projector.getProjectionPlane(), zScreenCoord);
-
-                    // Calculate intersections for each object
-                    Intersection closestIntersection = null;
-                    double nearestIntersectionDistance = Double.MAX_VALUE;
-                    Object3D intersectionObject = null;
-
-                    Vector3D unitRay = pixelRay.unit();
-
-                    for (Object3D object : objects) {
-                        Intersection intersection = object.getIntersection(unitRay, rayOrigin);
-                        if (intersection != null) {
-                            double intersectionDistance = intersection.point().subtract(rayOrigin).magnitude2();
-                            if (intersectionDistance < nearestIntersectionDistance) {
-                                closestIntersection = intersection;
-                                nearestIntersectionDistance = intersectionDistance;
-                                intersectionObject = object;
-                            }
-                        }
-                    }
-//
-                    if (closestIntersection != null) {
-                        int[] pixel = calculateColour(lights.get(0), intersectionObject, closestIntersection);
-                        if (pixel != null) {
-                            pixelSamples[0] += pixel[0];
-                            pixelSamples[1] += pixel[1];
-                            pixelSamples[2] += pixel[2];
-                        }
-                    }
-                }
                 int i = x + y * WIDTH;
-                int rgb = pixelSamples[0] / samplesPerPixel;
-                rgb = (rgb << 8) + pixelSamples[1] / samplesPerPixel;
-                rgb = (rgb << 8) + pixelSamples[2] / samplesPerPixel;
-                pixels[i] = rgb;
+                pixels[i] = projectRay(xScreenCoord, zScreenCoord);
             }
         });
 
-
-//        g.setColor(Color.RED);
-//        Vector2D circlePos = new Vector2D(300, 300);
-//        int radius = 75;
-//        drawCircle(g, circlePos, radius);
+        // Draw lights
+        for (Light light : lights) {
+            g2.setColor(Color.RED);
+            Vector2D circlePos = projector.project(light.getPos());
+            int radius = 10;
+            drawCircle(g2, circlePos, radius);
+        }
 //
 //        g.setColor(Color.YELLOW);
 //        g.fillRect((int) (mousePos.x() - 1), (int) (mousePos.y() - 1), 2, 2);
@@ -214,13 +178,42 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         g.dispose();
     }
 
-    private int[] calculateColour(Light light, Object3D litObject, Intersection litPoint) {
+    private int projectRay(double xScreenCoord, double zScreenCoord) {
+
+        // Calculate vector from camera to pixel
+        Vector3D pixelRay = new Vector3D(xScreenCoord, projector.getProjectionPlane(), zScreenCoord);
+
+        // Calculate intersections for each object
+        Intersection closestIntersection = null;
+        double nearestIntersectionDistance = Double.MAX_VALUE;
+        Object3D intersectionObject = null;
+
+        Vector3D unitRay = pixelRay.unit();
+
+        for (Object3D object : objects) {
+            Intersection intersection = object.getIntersection(unitRay, RAY_ORIGIN);
+            if (intersection != null) {
+                double intersectionDistance = intersection.point().subtract(RAY_ORIGIN).magnitude2();
+                if (intersectionDistance < nearestIntersectionDistance) {
+                    closestIntersection = intersection;
+                    nearestIntersectionDistance = intersectionDistance;
+                    intersectionObject = object;
+                }
+            }
+        }
+        if (closestIntersection != null) {
+            return calculateColour(lights.get(0), intersectionObject, closestIntersection);
+        }
+        return 0;
+    }
+
+    private int calculateColour(Light light, Object3D litObject, Intersection litPoint) {
         Vector3D toLight = light.getPos().subtract(litPoint.point()).unit();
         // Because both vectors are unit vectors, we should receive a value between 0 and 1
         double amountLit = litPoint.normal().dot(toLight);
         if (amountLit < 0) {
             // we're facing away from the light so should be in shadow
-            return null;
+            return 0;
         }
 
         // Check if there are any intersections with other objects that are blocking the light
@@ -228,7 +221,11 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
             if (object != litObject) {
                 Intersection intersection = object.getIntersection(toLight, litPoint.point());
                 if (intersection != null) {
-                    return null;
+                    if (litObject.getName().equals("Sphere") && intersection.object().getName().contains("face")) {
+                        // Sphere has somehow collided with quad
+                        System.out.println("Sphere quad");
+                    }
+                    return 0;
                 }
             }
         }
@@ -237,11 +234,11 @@ public class Raytracer implements CanvasRenderer, MouseMotionListener, MouseList
         int red = (int) (objColour.getRed() * amountLit);
         int green = (int) (objColour.getGreen() * amountLit);
         int blue = (int) (objColour.getBlue() * amountLit);
-        return new int[] {red, green, blue};
-//        int rgb = red;
-//        rgb = (rgb << 8) + green;
-//        rgb = (rgb << 8) + blue;
-//        return rgb;
+//        return new int[] {red, green, blue};
+        int rgb = red;
+        rgb = (rgb << 8) + green;
+        rgb = (rgb << 8) + blue;
+        return rgb;
     }
 
     private void drawVec(Graphics g, Vector2D pos, Vector2D vec, Color color) {

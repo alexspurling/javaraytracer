@@ -20,8 +20,8 @@ public class Cube extends Object3D {
     // These faces change based on the current position and angle
     private List<Quad> faces;
 
-    public Cube(Color colour, Vector3D pos, double size, double angularVelocity) {
-        super("Cube");
+    public Cube(String name, Color colour, Vector3D pos, double size, double angularVelocity) {
+        super(name);
 
         this.colour = colour;
         this.pos = pos;

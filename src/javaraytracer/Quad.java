@@ -76,14 +76,14 @@ public class Quad extends Object3D {
             return null;
         }
 
-//        double rayComponent2 = Pp.subtract(Pv).dot(Vp);
-//
-//        Vector3D inter = Vv.scale(rayComponent2 / rayComponent);
-//        Vector3D planeIntersection = Pv.add(inter);
+        double rayComponent2 = Pp.subtract(Pv).dot(Vp);
+
+        Vector3D inter = Vv.scale(rayComponent2 / rayComponent);
+        Vector3D planeIntersection = Pv.add(inter);
 
         // Optimised by assuming ray origin is always 0, 0, 0
-        double scale = Pp.dot(Vp) / rayComponent;
-        Vector3D planeIntersection = new Vector3D(Vv.x() * scale, Vv.y() * scale, Vv.z() * scale);
+//        double scale = Pp.dot(Vp) / rayComponent;
+//        Vector3D planeIntersection = new Vector3D(Vv.x() * scale, Vv.y() * scale, Vv.z() * scale);
 
         // Check if the intersection lies within the quad
 
@@ -94,7 +94,7 @@ public class Quad extends Object3D {
         double vx = v.dot(planeIntersection);
 
         if (ux > uP2 && ux < uP1 && vx > vP4 && vx < vP1) {
-            return new Intersection(planeIntersection, normal);
+            return new Intersection(this, planeIntersection, normal);
         }
         return null;
     }

@@ -49,7 +49,7 @@ public class Sphere extends Object3D {
         Vector3D intersectionPoint = unitRay.scaleTo(rayComponent - intersectionDistance);
         Vector3D normal = intersectionPoint.subtract(position).scale(invRadius);
 
-        return new Intersection(intersectionPoint, normal);
+        return new Intersection(this, intersectionPoint, normal);
     }
 
     @Override

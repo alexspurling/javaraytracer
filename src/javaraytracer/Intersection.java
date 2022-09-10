@@ -1,5 +1,5 @@
 package javaraytracer;
 
-public record Intersection(Vector3D point, Vector3D normal) {
+public record Intersection(Object3D object, Vector3D point, Vector3D normal) {
 
 }
