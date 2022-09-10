@@ -27,7 +27,7 @@ public class Quad extends Object3D {
         this.p2 = p2;
         this.p3 = p3;
         this.p4 = p4;
-        this.normal = p2.subtract(p1).cross(p3.subtract(p1)).unit();
+        this.normal = p4.subtract(p1).cross(p2.subtract(p1)).unit();
         this.u = p1.subtract(p2);
         this.v = p1.subtract(p4);
         this.uP1 = u.dot(p1);
@@ -77,8 +77,13 @@ public class Quad extends Object3D {
         }
 
         double rayComponent2 = Pp.subtract(Pv).dot(Vp);
+        // If rayComponent2 is positive then the ray is moving *away* from the quad
+        if (rayComponent2 >= 0) {
+            return null;
+        }
 
-        Vector3D inter = Vv.scale(rayComponent2 / rayComponent);
+        double scaleFactor = rayComponent2 / rayComponent;
+        Vector3D inter = Vv.scale(scaleFactor);
         Vector3D planeIntersection = Pv.add(inter);
 
         // Optimised by assuming ray origin is always 0, 0, 0
@@ -103,5 +108,14 @@ public class Quad extends Object3D {
     @Override
     Color getColour() {
         return colour;
+    }
+
+    @Override
+    Vector3D getPos() {
+        return null;
+    }
+
+    @Override
+    void setPos(Vector3D pos) {
     }
 }

@@ -32,44 +32,44 @@ public class Cube extends Object3D {
                 "Front face", colour,
                 new Vector3D(-cubeSize_2, -cubeSize_2, -cubeSize_2),
                 new Vector3D(+cubeSize_2, -cubeSize_2, -cubeSize_2),
-                new Vector3D(+cubeSize_2, -cubeSize_2, +cubeSize_2),
-                new Vector3D(-cubeSize_2, -cubeSize_2, +cubeSize_2)
+                new Vector3D(+cubeSize_2, +cubeSize_2, -cubeSize_2),
+                new Vector3D(-cubeSize_2, +cubeSize_2, -cubeSize_2)
         );
 
         // left
         var left = new Quad(
                 "Left face", colour,
                 new Vector3D(-cubeSize_2, +cubeSize_2, -cubeSize_2),
-                new Vector3D(-cubeSize_2, -cubeSize_2, -cubeSize_2),
+                new Vector3D(-cubeSize_2, +cubeSize_2, +cubeSize_2),
                 new Vector3D(-cubeSize_2, -cubeSize_2, +cubeSize_2),
-                new Vector3D(-cubeSize_2, +cubeSize_2, +cubeSize_2)
+                new Vector3D(-cubeSize_2, -cubeSize_2, -cubeSize_2)
         );
 
         // back
         var back = new Quad(
                 "Back face", colour,
-                new Vector3D(+cubeSize_2, +cubeSize_2, -cubeSize_2),
-                new Vector3D(-cubeSize_2, +cubeSize_2, -cubeSize_2),
                 new Vector3D(-cubeSize_2, +cubeSize_2, +cubeSize_2),
-                new Vector3D(+cubeSize_2, +cubeSize_2, +cubeSize_2)
+                new Vector3D(+cubeSize_2, +cubeSize_2, +cubeSize_2),
+                new Vector3D(+cubeSize_2, -cubeSize_2, +cubeSize_2),
+                new Vector3D(-cubeSize_2, -cubeSize_2, +cubeSize_2)
         );
 
         // right
         var right = new Quad(
                 "Right face", colour,
-                new Vector3D(+cubeSize_2, -cubeSize_2, -cubeSize_2),
-                new Vector3D(+cubeSize_2, +cubeSize_2, -cubeSize_2),
                 new Vector3D(+cubeSize_2, +cubeSize_2, +cubeSize_2),
+                new Vector3D(+cubeSize_2, +cubeSize_2, -cubeSize_2),
+                new Vector3D(+cubeSize_2, -cubeSize_2, -cubeSize_2),
                 new Vector3D(+cubeSize_2, -cubeSize_2, +cubeSize_2)
         );
 
         // top
         var top = new Quad(
                 "Top face", colour,
-                new Vector3D(-cubeSize_2, -cubeSize_2, -cubeSize_2),
+                new Vector3D(+cubeSize_2, +cubeSize_2, +cubeSize_2),
+                new Vector3D(-cubeSize_2, +cubeSize_2, +cubeSize_2),
                 new Vector3D(-cubeSize_2, +cubeSize_2, -cubeSize_2),
-                new Vector3D(+cubeSize_2, +cubeSize_2, -cubeSize_2),
-                new Vector3D(+cubeSize_2, -cubeSize_2, -cubeSize_2)
+                new Vector3D(+cubeSize_2, +cubeSize_2, -cubeSize_2)
         );
 
         // bottom
@@ -77,8 +77,8 @@ public class Cube extends Object3D {
                 "Bottom face", colour,
                 new Vector3D(-cubeSize_2, -cubeSize_2, +cubeSize_2),
                 new Vector3D(+cubeSize_2, -cubeSize_2, +cubeSize_2),
-                new Vector3D(+cubeSize_2, +cubeSize_2, +cubeSize_2),
-                new Vector3D(-cubeSize_2, +cubeSize_2, +cubeSize_2)
+                new Vector3D(+cubeSize_2, -cubeSize_2, -cubeSize_2),
+                new Vector3D(-cubeSize_2, -cubeSize_2, -cubeSize_2)
         );
 
         baseFaces = List.of(front, left, back, right, top, bottom);
@@ -102,10 +102,10 @@ public class Cube extends Object3D {
         // Rotate the original faces and then translate their position
         for (Quad face : baseFaces) {
             newFaces.add(new Quad(face.getName(), face.getColour(),
-                    face.p1.rotateZ(angle).add(pos),
-                    face.p2.rotateZ(angle).add(pos),
-                    face.p3.rotateZ(angle).add(pos),
-                    face.p4.rotateZ(angle).add(pos)));
+                    face.p1.rotateY(angle).add(pos),
+                    face.p2.rotateY(angle).add(pos),
+                    face.p3.rotateY(angle).add(pos),
+                    face.p4.rotateY(angle).add(pos)));
         }
         faces = newFaces;
     }
@@ -113,15 +113,15 @@ public class Cube extends Object3D {
     @Override
     public void draw(Graphics g, Projector p) {
 
-        Vector2D c1 = p.project(new Vector3D(-cubeSize_2, -cubeSize_2, -cubeSize_2).rotateZ(angle).add(pos));
-        Vector2D c2 = p.project(new Vector3D(cubeSize_2, -cubeSize_2, -cubeSize_2).rotateZ(angle).add(pos));
-        Vector2D c3 = p.project(new Vector3D(-cubeSize_2, -cubeSize_2, cubeSize_2).rotateZ(angle).add(pos));
-        Vector2D c4 = p.project(new Vector3D(cubeSize_2, -cubeSize_2, cubeSize_2).rotateZ(angle).add(pos));
+        Vector2D c1 = p.project(new Vector3D(-cubeSize_2, -cubeSize_2, -cubeSize_2).rotateY(angle).add(pos));
+        Vector2D c2 = p.project(new Vector3D(cubeSize_2, -cubeSize_2, -cubeSize_2).rotateY(angle).add(pos));
+        Vector2D c3 = p.project(new Vector3D(-cubeSize_2, -cubeSize_2, cubeSize_2).rotateY(angle).add(pos));
+        Vector2D c4 = p.project(new Vector3D(cubeSize_2, -cubeSize_2, cubeSize_2).rotateY(angle).add(pos));
 
-        Vector2D c5 = p.project(new Vector3D(-cubeSize_2, cubeSize_2, -cubeSize_2).rotateZ(angle).add(pos));
-        Vector2D c6 = p.project(new Vector3D(cubeSize_2, cubeSize_2, -cubeSize_2).rotateZ(angle).add(pos));
-        Vector2D c7 = p.project(new Vector3D(-cubeSize_2, cubeSize_2, cubeSize_2).rotateZ(angle).add(pos));
-        Vector2D c8 = p.project(new Vector3D(cubeSize_2, cubeSize_2, cubeSize_2).rotateZ(angle).add(pos));
+        Vector2D c5 = p.project(new Vector3D(-cubeSize_2, cubeSize_2, -cubeSize_2).rotateY(angle).add(pos));
+        Vector2D c6 = p.project(new Vector3D(cubeSize_2, cubeSize_2, -cubeSize_2).rotateY(angle).add(pos));
+        Vector2D c7 = p.project(new Vector3D(-cubeSize_2, cubeSize_2, cubeSize_2).rotateY(angle).add(pos));
+        Vector2D c8 = p.project(new Vector3D(cubeSize_2, cubeSize_2, cubeSize_2).rotateY(angle).add(pos));
 
         g.setColor(Color.RED);
         drawLine(g, c1, c2);

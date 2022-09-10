@@ -15,13 +15,9 @@ public class Projector {
         this.height = height;
     }
 
-    public List<Vector2D> project(List<Vector3D> points) {
-        return points.stream().map(this::project).collect(Collectors.toList());
-    }
-
     public Vector2D project(Vector3D pos) {
-        double mapX = projectionPlane * pos.x() / pos.y();
-        double mapY = projectionPlane * pos.z() / pos.y();
+        double mapX = projectionPlane * pos.x() / pos.z();
+        double mapY = projectionPlane * -pos.y() / pos.z();
 
         int width_2 = width / 2;
         int height_2 = height / 2;

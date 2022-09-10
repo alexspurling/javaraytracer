@@ -52,14 +52,14 @@ public record Vector3D(double x, double y, double z) {
         return new Vector3D(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x);
     }
 
-    /* Rotate about the Z axis */
-    public Vector3D rotateZ(double angle) {
+    /* Rotate about the Y axis */
+    public Vector3D rotateY(double angle) {
         double c = cos(angle);
         double s = sin(angle);
 
-        double x2 = c * x + -s * y;
-        double y2 = s * x + c * y;
-        double z2 = z;
+        double x2 = c * x + -s * z;
+        double y2 = y;
+        double z2 = s * x + c * z;
         return new Vector3D(x2, y2, z2);
     }
 }

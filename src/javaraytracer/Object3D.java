@@ -22,4 +22,8 @@ public abstract class Object3D {
     abstract Intersection getIntersection(Vector3D ray, Vector3D rayOrigin);
 
     abstract Color getColour();
+
+    abstract Vector3D getPos();
+
+    abstract void setPos(Vector3D pos);
 }

@@ -8,6 +8,7 @@ public class Sphere extends Object3D {
     private final double invRadius;
     private final double radius;
     private final double radiusSq;
+    private Vector3D origin;
     private Vector3D position;
     private double totalTime = 0;
 
@@ -15,6 +16,7 @@ public class Sphere extends Object3D {
         super("Sphere");
         this.colour = colour;
         this.position = position;
+        this.origin = position;
         this.radius = radius;
         this.radiusSq = radius * radius;
         this.invRadius = 1 / radius;
@@ -23,7 +25,7 @@ public class Sphere extends Object3D {
     @Override
     void update(double dt) {
         totalTime += dt;
-        position = new Vector3D(position.x(), position.y(), Math.sin(totalTime * 0.001) * 50);
+        position = new Vector3D(origin.x(), origin.y() + Math.sin(totalTime * 0.001) * 50, origin.z());
     }
 
     @Override
@@ -44,9 +46,9 @@ public class Sphere extends Object3D {
 
         double intersectionDistance = Math.sqrt(radiusSq - distanceFromCentreSquared);
 
-//        Vector3D intersectionPoint = rayOrigin.add(unitRay.scaleTo(rayComponent - intersectionDistance));
+        Vector3D intersectionPoint = rayOrigin.add(unitRay.scaleTo(rayComponent - intersectionDistance));
         // Optimised by assuming rayOrigin is always 0, 0, 0
-        Vector3D intersectionPoint = unitRay.scaleTo(rayComponent - intersectionDistance);
+//        Vector3D intersectionPoint = unitRay.scaleTo(rayComponent - intersectionDistance);
         Vector3D normal = intersectionPoint.subtract(position).scale(invRadius);
 
         return new Intersection(this, intersectionPoint, normal);
@@ -55,6 +57,16 @@ public class Sphere extends Object3D {
     @Override
     Color getColour() {
         return colour;
+    }
+
+    @Override
+    Vector3D getPos() {
+        return origin;
+    }
+
+    @Override
+    void setPos(Vector3D pos) {
+        origin = pos;
     }
 
     @Override
